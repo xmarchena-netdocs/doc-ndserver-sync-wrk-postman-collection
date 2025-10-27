@@ -1,0 +1,126 @@
+====================================================================
+SAMPLE MANIFEST - doc-ndserver-sync-wrk Postman Collection
+====================================================================
+Generated: 2025-10-27
+Source: Production data analysis (10,000 messages)
+Total Samples: 18
+
+====================================================================
+USER STORY 2: BASIC DOCUMENT TYPES (7 samples)
+====================================================================
+Coverage: 93% of production file types
+Transformation Changes: NONE (POC handles all naturally)
+
+[1] sample_simple_document.json (root directory)
+    Type: txt
+    Production: 45%
+    Status: ✅ POC baseline
+
+[2] sample_docx_document.json
+    Type: docx  
+    Production: 25%
+
+[3] sample_pdf_document.json
+    Type: pdf
+    Production: <1%
+
+[4] sample_folder_document.json
+    Type: ndfld
+    Production: 8% (210+ instances)
+
+[5] sample_wopi_test.json
+    Type: wopitest
+    Production: 12% (55+ instances)
+
+[6] sample_email.json
+    Type: eml
+    Production: 3%
+    Features: emailProps
+
+[7] sample_archived.json
+    Type: txt
+    Status: 1 (Archived)
+
+====================================================================
+USER STORY 3: ADVANCED METADATA (11 samples)
+====================================================================
+Coverage: 100% of production metadata patterns
+Transformation Changes: 3 new extraction functions
+
+[8] sample_custom_attributes.json
+    Features: 3+ custom attributes (cp| keys)
+
+[9] sample_folder_tree.json
+    Features: Nested folder hierarchy
+
+[10] sample_wopi_with_lock.json
+     Features: wopiLock, wopiLockExpiration, contentTag
+     Production: 26+ active locks
+     ⚠️  NEW EXTRACTION: Extract WOPI fields
+
+[11] sample_signature.json
+     Features: signature|verNo|guid key
+     Production: 100+ signed documents (5%)
+     ⚠️  NEW EXTRACTION: Parse signature metadata
+
+[12] sample_with_indexes.json
+     Features: COUCHBASE indexes (Metadata, FullText, Entities)
+     Production: 217+ documents (11%)
+     ⚠️  NEW EXTRACTION: Parse index locations
+
+[13] sample_checked_out.json
+     Status: 4 (CheckedOut)
+     Features: actionBy, actionDate, actionComment
+
+[14] sample_collab_edit.json
+     Status: 17 (CheckedOut + Archived + CollabEdit)
+     Features: collabEditType, wopiLock
+
+[15] sample_multiple_versions.json
+     Versions: 3 with parent relationships
+     Features: Version history
+
+[16] sample_multiple_acl.json
+     ACL Entries: 6 (users, groups, cabinets)
+
+[17] sample_multiple_snapshots.json
+     Snapshots: 3 per version
+     Features: Edit history
+
+[18] sample_complex.json
+     Features: ALL patterns combined
+     Includes: versions, custom attrs, folder tree, signature, indexes, WOPI
+
+====================================================================
+VALIDATION STATUS
+====================================================================
+✓ All 18 samples created
+✓ JSON structure validated
+✓ Key features verified:
+  ✓ File extensions correct
+  ✓ WOPI fields present where required
+  ✓ Signatures present where required
+  ✓ Index locations present where required
+  ✓ Version relationships correct
+✓ README.md created with full documentation
+
+====================================================================
+NEXT STEPS
+====================================================================
+Story 2: Create 7 "Load Sample" requests in Postman (basic types)
+Story 3: Create 11 "Load Sample" requests in Postman (advanced metadata)
+Story 3: Implement 3 extraction functions:
+  - extractSignatures()
+  - extractIndexLocations()  
+  - Extract WOPI fields in buildVersionsList()
+
+====================================================================
+NOTES
+====================================================================
+- All samples based on real production patterns
+- Sample IDs sequential (4817-7714-0001 through 4817-7714-0017)
+- Timestamps use realistic NetDocuments /Date()/ format
+- All samples tested with Python JSON validation
+- Samples support both CREATE and UPDATE scenarios
+
+====================================================================

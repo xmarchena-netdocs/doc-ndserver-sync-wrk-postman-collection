@@ -1,0 +1,107 @@
+{
+  "type": "nmd",
+  "envProps": {
+    "envname": "~251023154050352",
+    "containingcabs": [
+      "NG-NLLNZCIR"
+    ],
+    "authorguid": "DUCOT-H6OWBNKC",
+    "author": "Andriy Admin",
+    "created": "/Date(1761248450324)/",
+    "contentkey": "HSM-CM-LAB_2019_0715|g2gdd/6Lv4GsIOWKFVmhYMkkTDiqmHdxdsPtdnguAANeFIK19Ip/ZMiIyUjlkEm8T+bxUSpROJsFWj6vtXo3Yw==|gIx6/TH9k8drxIpttgMUQg==",
+    "docmodnum": 20251023194053022,
+    "url": "https://ducot.netdocuments.com/Ducot4/p/k/r/u/~251023154050352.nev",
+    "acl": [
+      {
+        "guid": "NG-NLLNZCIR",
+        "rights": "Z",
+        "persistent": false
+      },
+      {
+        "guid": "DUCOT-H6OWBNKC",
+        "rights": "VESD",
+        "persistent": false
+      }
+    ],
+    "lastdocnum": 2,
+    "modified": "/Date(1761248453021)/",
+    "modified by guid": "DUCOT-indexer",
+    "modified by": "Indexer P User for Internal Systems",
+    "modnum": 5,
+    "collaborationspaceid": "/Ducot5/u/2/4/m/^C251023153727353.nev",
+    "logusers": [
+      "DUCOT-H6OWBNKC"
+    ],
+    "dlp": {
+      "PolicyReferences": [
+        {
+          "RepositoryId": "CA-WJUDJA7A",
+          "PolicyIds": [
+            "21912e32-fb66-48a1-9718-8ecbbcfac470"
+          ],
+          "SchemaVersion": 1
+        }
+      ],
+      "SchemaVersion": 1
+    },
+    "foldertree": []
+  },
+  "documents": {
+    "1": {
+      "docProps": {
+        "docNum": 1,
+        "id": "4816-0936-6723",
+        "status": 0,
+        "cp|CA-WJUDJA7A|2": "001",
+        "cp|CA-WJUDJA7A|1": "001",
+        "lastVerNo": 1,
+        "verLabel": "1.0",
+        "contentModNum": 20251023194050581,
+        "name": "DELETE_DocumentInOtherCsFolder_638968233404458752 (copy)",
+        "nameModNum": 20251023194050587,
+        "originaldocumentid": "/Ducot4/w/f/w/l/~251023153841418.nev|1",
+        "originaldocumentmodifieddate": "/Date(1761248322376)/",
+        "originaldocumentversion": 1,
+        "originaldocumentnumber": "4843-1043-2963",
+        "indexType-Metadata": "COUCHBASE",
+        "indexLocation-Metadata": "/Ducot4/p/k/r/u/~251023154050352-1.mdi",
+        "indexType-FullText": "COUCHBASE",
+        "indexLocation-FullText": "/Ducot4/p/k/r/u/~251023154050352-1.fti",
+        "indexType-Entities": "COUCHBASE",
+        "indexLocation-Entities": "/Ducot4/p/k/r/u/~251023154050352-1.ent"
+      },
+      "versions": {
+        "1": {
+          "verProps": {
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248450573)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4816-0936-6723/versions/1/SNAPSHOT/DEFAULT?versionId=AnsCCkPb6JOPMq7QgM_nf_RLVwU_d5kC",
+                "guid": "23a1b21f-b6fb-4d2a-9811-4f24d8ffb96b",
+                "bytes": 49,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "97E80E91D143B7E694DE5F61D8B9D69E49A20880AC09C7E1795A634CD1C80A3D"
+              }
+            ],
+            "verLabel": "1.0",
+            "exten": "txt",
+            "created": "/Date(1761248450365)/",
+            "modifiedBy": "Andriy Admin",
+            "modifiedByGuid": "DUCOT-H6OWBNKC",
+            "description": null,
+            "modified": "/Date(1761248322376)/",
+            "access": null,
+            "verName": null,
+            "creator": "Andriy Admin",
+            "creatorguid": "DUCOT-H6OWBNKC",
+            "size": 49,
+            "contentTag": null
+          }
+        }
+      }
+    }
+  },
+  "Traceparent": "00-c80a2a7092814cb988036d48a37f4b7b-e14929fc3f45d052-01"
+}

@@ -1,0 +1,149 @@
+{
+  "type": "nmd",
+  "envProps": {
+    "envname": "~251023153700282",
+    "containingcabs": [
+      "NG-AEN4047D"
+    ],
+    "authorguid": "DUCOT-sean.ndtest",
+    "author": "Sean a ndTest",
+    "created": "/Date(1761248220282)/",
+    "contentkey": "HSM-CM-LAB_2019_0715|mi/Pv25F+xakyaHf/upB9ezKb2bl/HKefoja98YC2oLutphJSCZGcT1RKPHNSc+1nD9F253Phe7IP3qOZHd6DA==|c7Er9X3scFPdxI3GrHAJ3w==",
+    "docmodnum": 20251023194052735,
+    "url": "https://ducot.netdocuments.com/Ducot7/i/s/m/a/~251023153700282.nev",
+    "lastdocnum": 2,
+    "acl": [
+      {
+        "guid": "NG-AEN4047D",
+        "rights": "Z",
+        "persistent": false
+      },
+      {
+        "guid": "DUCOT-sean.ndtest",
+        "rights": "VESD",
+        "persistent": false
+      }
+    ],
+    "modified": "/Date(1761248452740)/",
+    "modified by guid": "DUCOT-sean.ndtest",
+    "modified by": "Sean a ndTest",
+    "modnum": 26,
+    "logusers": [
+      "DUCOT-sean.ndtest"
+    ],
+    "foldertree": []
+  },
+  "documents": {
+    "1": {
+      "docProps": {
+        "docNum": 1,
+        "id": "4835-7223-5459",
+        "status": 0,
+        "lastVerNo": 3,
+        "verLabel": "3.0",
+        "name": "NOX96 638968234191695760",
+        "nameModNum": 20251023193700293,
+        "contentModNum": 20251023194039617,
+        "officialVersion": 3,
+        "indexType-Metadata": "COUCHBASE",
+        "indexLocation-Metadata": "/Ducot7/i/s/m/a/~251023153700282-1.mdi",
+        "indexType-FullText": "COUCHBASE",
+        "indexLocation-FullText": "/Ducot7/i/s/m/a/~251023153700282-1.fti",
+        "indexType-Entities": "COUCHBASE",
+        "indexLocation-Entities": "/Ducot7/i/s/m/a/~251023153700282-1.ent",
+        "actionBy": "DUCOT-sean.ndtest",
+        "actionComment": "",
+        "actionDate": "/Date(1761248440783)/"
+      },
+      "versions": {
+        "1": {
+          "verProps": {
+            "verLabel": "1.0",
+            "exten": "txt",
+            "created": "/Date(1761248220300)/",
+            "creatorguid": "DUCOT-sean.ndtest",
+            "creator": "Sean a ndTest",
+            "modifiedBy": "Sean a ndTest",
+            "modifiedByGuid": "DUCOT-sean.ndtest",
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248220659)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4835-7223-5459/versions/1/SNAPSHOT/DEFAULT?versionId=b0hhAa7k6R.U9ZA5eSRGsonB_etIfpgP",
+                "guid": "77bceca2-b107-435a-8795-41e7094d12f8",
+                "bytes": 14,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "2D5BC9CFB83DE05B2BC986882E87B5A0E0E7D136F502F6D2BFB246504E1023B9"
+              }
+            ],
+            "size": 14,
+            "modified": "/Date(1761248220662)/",
+            "contentTag": null
+          }
+        },
+        "2": {
+          "verProps": {
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248221549)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4835-7223-5459/versions/2/SNAPSHOT/DEFAULT?versionId=WLALleTQr_wWjKR2NLycRPJPex8Th8po",
+                "guid": "6877e966-43b2-4c6c-ab23-7366bf38fd52",
+                "bytes": 14,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "DAD54781C5501566CF82175A79CC3A5CDD374D8E9A232B75FB2F8509853CFE2D"
+              }
+            ],
+            "verLabel": "2.0",
+            "exten": "txt",
+            "created": "/Date(1761248220981)/",
+            "modifiedBy": "Sean a ndTest",
+            "modifiedByGuid": "DUCOT-sean.ndtest",
+            "description": "",
+            "modified": "/Date(1761248221552)/",
+            "access": null,
+            "verName": "",
+            "creator": "Sean a ndTest",
+            "creatorguid": "DUCOT-sean.ndtest",
+            "parent": 1,
+            "size": 14,
+            "contentTag": null
+          }
+        },
+        "3": {
+          "verProps": {
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248222273)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4835-7223-5459/versions/3/SNAPSHOT/DEFAULT?versionId=bbk87FSyJibuHlaFjf71NL94yAJifpP.",
+                "guid": "a3222eff-4edc-459b-be9f-03a843405525",
+                "bytes": 14,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "68386A3AE1941757E0B47B2630A7FC66475AC41F35F58769474CC141E0FAC2B6"
+              }
+            ],
+            "verLabel": "3.0",
+            "exten": "txt",
+            "created": "/Date(1761248221698)/",
+            "modifiedBy": "Sean a ndTest",
+            "modifiedByGuid": "DUCOT-sean.ndtest",
+            "description": "",
+            "modified": "/Date(1761248222277)/",
+            "access": null,
+            "verName": "",
+            "creator": "Sean a ndTest",
+            "creatorguid": "DUCOT-sean.ndtest",
+            "parent": 1,
+            "size": 14,
+            "contentTag": null
+          }
+        }
+      }
+    }
+  },
+  "Traceparent": "00-279d771a0b0c4f4ab1cc4c3cad37fa3e-ed118eba569cfeff-01"
+}

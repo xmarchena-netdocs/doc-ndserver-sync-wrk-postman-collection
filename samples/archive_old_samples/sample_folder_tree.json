@@ -1,0 +1,95 @@
+{
+  "type": "nmd",
+  "envProps": {
+    "envname": "^F251023154053521",
+    "containingcabs": [
+      "NG-C3C4OBGZ"
+    ],
+    "authorguid": "DUCOT-5BUVB3FJ",
+    "author": "at ves",
+    "created": "/Date(1761248453521)/",
+    "contentkey": "HSM-CM-LAB_2019_0715|/pe2fRI4gWyB0fP8N8xvNAjeSdrTpL9Jc/854rQS8aod1KLgREvfWRaVq/LHjFXYpac/8mPSx1QKY9TwsQ2TmA==|IgarDdlza1b1q+2YNNhwfQ==",
+    "docmodnum": 20251023194103370,
+    "url": "https://ducot.netdocuments.com/Ducot4/2/7/r/r/^F251023154053521.nev",
+    "lastdocnum": 2,
+    "status": 12288,
+    "acl": [
+      {
+        "guid": "NG-C3C4OBGZ",
+        "rights": "Z",
+        "persistent": false
+      },
+      {
+        "guid": "DUCOT-5BUVB3FJ",
+        "rights": "VESD",
+        "persistent": false
+      }
+    ],
+    "jumbofolders": "/Ducot4/v/z/d/i/^F251023154052834.nev",
+    "foldertree": [
+      "/ducot3/7/g/v/2/^f251023154014790.nev|/ducot4/4/g/m/7/^f251023154037387.nev|/ducot4/v/z/d/i/^f251023154052834.nev"
+    ],
+    "modnum": 6,
+    "logusers": [
+      "DUCOT-5BUVB3FJ"
+    ],
+    "parentfolder": "/Ducot4/v/z/d/i/^F251023154052834.nev",
+    "foldertreeprocessedv2": true,
+    "defaultsortfield": "C!A!T",
+    "modified": "/Date(1761248463375)/",
+    "modified by guid": "DUCOT-5BUVB3FJ",
+    "modified by": "at ves"
+  },
+  "documents": {
+    "1": {
+      "docProps": {
+        "docNum": 1,
+        "id": "4816-5969-8371",
+        "status": 0,
+        "lastVerNo": 1,
+        "verLabel": "1.0",
+        "name": "AT5300 SubFolder.Subfolder with document",
+        "nameModNum": 20251023194053590,
+        "folderTreeId": 0,
+        "contentModNum": 20251023194055008,
+        "cp|CA-V9LW34J9|3": "AT 5300",
+        "indexType-Metadata": "COUCHBASE",
+        "indexLocation-Metadata": "/Ducot4/2/7/r/r/^F251023154053521-1.mdi",
+        "indexType-FullText": "COUCHBASE",
+        "indexLocation-FullText": "/Ducot4/2/7/r/r/^F251023154053521-1.fti",
+        "indexType-Entities": "COUCHBASE",
+        "indexLocation-Entities": "/Ducot4/2/7/r/r/^F251023154053521-1.ent",
+        "cp|CA-V9LW34J9|100": "638968236090378791"
+      },
+      "versions": {
+        "1": {
+          "verProps": {
+            "verLabel": "1.0",
+            "exten": "ndfld",
+            "created": "/Date(1761248453584)/",
+            "creatorguid": "DUCOT-5BUVB3FJ",
+            "creator": "at ves",
+            "modifiedBy": "at ves",
+            "modifiedByGuid": "DUCOT-5BUVB3FJ",
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248455006)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4816-5969-8371/versions/1/SNAPSHOT/DEFAULT?versionId=ve3pn4wF5zTRtIW3NZPHajryun.BoJhu",
+                "guid": "5f59c6b1-4486-4850-94bf-71ebc46a8c1b",
+                "bytes": 240,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "B1205BFCBA0D06E2206471ECAD6DBB8B75E16EC907589F983EAAF089B9F917C4"
+              }
+            ],
+            "size": 240,
+            "modified": "/Date(1761248455006)/",
+            "contentTag": null
+          }
+        }
+      }
+    }
+  },
+  "Traceparent": "00-bd4d8584402641f2a6f3096f26bba1b6-9b4e6544ec49649a-01"
+}

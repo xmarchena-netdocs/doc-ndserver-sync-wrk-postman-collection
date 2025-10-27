@@ -1,0 +1,482 @@
+{
+  "info": {
+    "name": "doc-ndserver-sync-wrk - POC",
+    "description": "Proof of Concept for doc-ndserver-sync-wrk synchronization\n\nScenario 1: New Document Creation\n\nThis POC demonstrates the basic document sync workflow:\n1. Load sample NMD message\n2. Check if document exists\n3. Update content document root\n4. Build patch request\n5. Create document in metadata API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Setup",
+      "item": [
+        {
+          "name": "README - How to Use",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://postman-echo.com/get",
+              "protocol": "https",
+              "host": ["postman-echo", "com"],
+              "path": ["get"]
+            },
+            "description": "# POC Setup Instructions\n\n## Prerequisites\n\n1. **Import Environment**: Import `doc-ndserver-sync-wrk-POC.postman_environment.json`\n2. **Obtain Tokens**: Run these commands:\n\n```bash\n# Metadata Service Token\n/home/xmarchena/code/idp-docker-utils/service-to-service-cli/service-to-service-cli auth get-access-token --audience doc-metadata-api-svc --scope \"service.create service.read service.update service.delete\"\n\n# Content Service Token\n/home/xmarchena/code/idp-docker-utils/service-to-service-cli/service-to-service-cli auth get-access-token --audience doc-content-api-svc --scope \"service.create service.read service.update service.delete\"\n```\n\n3. **Set Tokens**: Paste tokens into environment variables:\n   - `metadataToken`\n   - `contentToken`\n\n## How to Run POC\n\n1. Run \"01 - Load Sample Document\"\n2. Run folder \"02 - Sync Workflow\" in sequence (or use Runner)\n3. Check console output for detailed logs\n4. Verify document created in metadata API\n\n## Expected Results\n\n✅ Step 1: Returns 404 (document doesn't exist)\n✅ Step 2: Returns 200 (content root updated)\n✅ Step 3: Builds patch request (no API call)\n✅ Step 4: Returns 200 (document created)\n\n## Troubleshooting\n\n- **401 Unauthorized**: Token expired, re-obtain tokens\n- **404 Not Found**: Expected for Step 1 (new document)\n- **Script Errors**: Check console for details"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Load Sample Document",
+      "item": [
+        {
+          "name": "Load Sample: Simple Document",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Load simple document sample into nmdMessage",
+                  "const sample = pm.environment.get('sample_simple_document');",
+                  "",
+                  "if (sample) {",
+                  "    // Parse the sample",
+                  "    const msg = JSON.parse(sample);",
+                  "    ",
+                  "    // Generate a NEW dynamic document ID (format: XXXX-XXXX-XXXX)",
+                  "    function generateDocId() {",
+                  "        const randomPart = () => Math.floor(1000 + Math.random() * 9000);",
+                  "        return `${randomPart()}-${randomPart()}-${randomPart()}`;",
+                  "    }",
+                  "    ",
+                  "    const newDocId = generateDocId();",
+                  "    const originalDocId = msg.documents['1'].docProps.id;",
+                  "    const cabId = msg.envProps.containingcabs[0];",
+                  "    ",
+                  "    // Replace the document ID in the entire JSON",
+                  "    let updatedSample = sample.replace(new RegExp(originalDocId, 'g'), newDocId);",
+                  "    ",
+                  "    // Update the nmdMessage with new document ID",
+                  "    pm.environment.set('nmdMessage', updatedSample);",
+                  "    pm.environment.set('documentId', newDocId);",
+                  "    pm.environment.set('cabinetId', cabId);",
+                  "    ",
+                  "    console.log('✅ Loaded Simple Document Sample with DYNAMIC ID');",
+                  "    console.log(`   Original Document ID: ${originalDocId}`);",
+                  "    console.log(`   NEW Document ID: ${newDocId}`);",
+                  "    console.log(`   Cabinet ID: ${cabId}`);",
+                  "    console.log('📝 This will test Scenario 1: New Document Creation');",
+                  "} else {",
+                  "    console.error('❌ Sample not found in environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Sample loaded successfully\", function () {",
+                  "    const nmdMessage = pm.environment.get('nmdMessage');",
+                  "    pm.expect(nmdMessage).to.not.be.empty;",
+                  "});",
+                  "",
+                  "console.log('✅ Ready to run sync workflow');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://postman-echo.com/get",
+              "protocol": "https",
+              "host": ["postman-echo", "com"],
+              "path": ["get"]
+            },
+            "description": "Loads the simple document sample into the nmdMessage environment variable.\n\nThis is a dummy request that only runs pre-request script to set up variables."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Sync Workflow",
+      "item": [
+        {
+          "name": "Step 1: Check Document Existence",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure documentId is set",
+                  "const docId = pm.environment.get('documentId');",
+                  "",
+                  "if (!docId) {",
+                  "    console.error('❌ documentId not set. Run \"Load Sample\" first.');",
+                  "} else {",
+                  "    console.log(`🔍 Checking existence of document: ${docId}`);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseCode = pm.response.code;",
+                  "",
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect(responseCode).to.be.oneOf([200, 404]);",
+                  "});",
+                  "",
+                  "if (responseCode === 200) {",
+                  "    const extendedDoc = pm.response.json();",
+                  "    pm.environment.set('existingDocument', JSON.stringify(extendedDoc));",
+                  "    pm.environment.set('isNewDocument', 'false');",
+                  "    ",
+                  "    console.log('✅ Document exists - Update mode');",
+                  "    console.log(`   State: ${extendedDoc.State}`);",
+                  "    console.log(`   Versions: ${extendedDoc.Versions?.length || 0}`);",
+                  "} else if (responseCode === 404) {",
+                  "    pm.environment.set('existingDocument', '');",
+                  "    pm.environment.set('isNewDocument', 'true');",
+                  "    ",
+                  "    console.log('✅ Document not found - Create mode (expected for POC)');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{metadataToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{metadataBaseUrl}}/v1/documents/extended/{{documentId}}",
+              "host": ["{{metadataBaseUrl}}"],
+              "path": ["v1", "documents", "extended", "{{documentId}}"]
+            },
+            "description": "Checks if the document already exists in the metadata API.\n\nExpected for POC: 404 Not Found (new document)"
+          },
+          "response": []
+        },
+        {
+          "name": "Step 2: Update Content Document Root",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Build documentRoot from NMD message",
+                  "const nmdMessage = JSON.parse(pm.environment.get('nmdMessage'));",
+                  "const cabinetId = nmdMessage.envProps.containingcabs[0];",
+                  "",
+                  "// Format: [\"NG-CABID/documents\"]",
+                  "const documentRoot = [`${cabinetId}/documents`];",
+                  "",
+                  "pm.environment.set('documentRoot', JSON.stringify(documentRoot));",
+                  "",
+                  "console.log(`📁 Setting document root: ${JSON.stringify(documentRoot)}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "console.log('✅ Content document root updated');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{contentToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentRoot\": {{documentRoot}},\n  \"source\": \"doc-ndserver-sync-wrk\"\n}"
+            },
+            "url": {
+              "raw": "{{contentBaseUrl}}/v1/content/{{documentId}}/metadata",
+              "host": ["{{contentBaseUrl}}"],
+              "path": ["v1", "content", "{{documentId}}", "metadata"]
+            },
+            "description": "Updates the content service metadata to set the document root location.\n\nThis configures where content files are stored in S3."
+          },
+          "response": []
+        },
+        {
+          "name": "Step 3: Build Patch Request",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// === MINIMAL TRANSFORMATION FOR POC ===",
+                  "// This is a simplified version for new document creation only",
+                  "",
+                  "const nmdMessage = JSON.parse(pm.environment.get('nmdMessage'));",
+                  "const doc = nmdMessage.documents['1'];",
+                  "const docProps = doc.docProps;",
+                  "const envProps = nmdMessage.envProps;",
+                  "",
+                  "// Helper: Convert NetDocuments date format",
+                  "function convertDate(dateStr) {",
+                  "    if (!dateStr) return null;",
+                  "    const match = dateStr.match(/\\d+/);",
+                  "    if (!match) return null;",
+                  "    return new Date(parseInt(match[0])).toISOString();",
+                  "}",
+                  "",
+                  "// Helper: Build ACL",
+                  "function buildAcl(nmdAcl) {",
+                  "    const rightsMap = {",
+                  "        'V': 'viewer',",
+                  "        'E': 'editor',",
+                  "        'S': 'sharer',",
+                  "        'D': 'administrator',",
+                  "        'Z': 'default'",
+                  "    };",
+                  "    ",
+                  "    return (nmdAcl || []).map(entry => {",
+                  "        const relations = entry.rights.split('').map(r => rightsMap[r]).filter(Boolean);",
+                  "        ",
+                  "        let subjectType = 'user';",
+                  "        if (entry.guid.startsWith('UG-')) subjectType = 'group';",
+                  "        if (entry.guid.startsWith('NG-') || entry.guid.startsWith('CA-')) subjectType = 'cabinet';",
+                  "        ",
+                  "        return {",
+                  "            SubjectType: subjectType,",
+                  "            SubjectId: entry.guid,",
+                  "            Relations: relations",
+                  "        };",
+                  "    });",
+                  "}",
+                  "",
+                  "// Helper: Build versions list",
+                  "function buildVersions(versions) {",
+                  "    const versionsList = [];",
+                  "    ",
+                  "    for (const [versionId, versionData] of Object.entries(versions || {})) {",
+                  "        const props = versionData.verProps;",
+                  "        ",
+                  "        versionsList.push({",
+                  "            VersionId: parseInt(versionId),",
+                  "            Name: versionId,",
+                  "            Description: props.description || '',",
+                  "            Extension: props.exten,",
+                  "            Label: props.verLabel,",
+                  "            Size: props.size,",
+                  "            Locked: false,",
+                  "            DeliveryRevoked: false,",
+                  "            Created: {",
+                  "                UserId: props.creatorguid,",
+                  "                Timestamp: convertDate(props.created)",
+                  "            },",
+                  "            Modified: {",
+                  "                UserId: props.modifiedByGuid || props.creatorguid,",
+                  "                Timestamp: convertDate(props.modified || props.created)",
+                  "            },",
+                  "            State: 'ACTIVE',",
+                  "            CopiedFrom: null,",
+                  "            LegacySignatures: null",
+                  "        });",
+                  "    }",
+                  "    ",
+                  "    return versionsList;",
+                  "}",
+                  "",
+                  "// Build minimal patch request for NEW document",
+                  "const patchRequest = {",
+                  "    DocumentId: docProps.id,",
+                  "    CabinetId: envProps.containingcabs[0],",
+                  "    Name: docProps.name,",
+                  "    State: 'ACTIVE',",
+                  "    OfficialVersion: docProps.lastVerNo,",
+                  "    NextVersion: docProps.lastVerNo + 1,",
+                  "    EnvUrl: envProps.url,",
+                  "    ParentFolders: [],",
+                  "    FolderTree: [],",
+                  "    AclFreeze: false,",
+                  "    DocModNum: parseInt(envProps.docmodnum),",
+                  "    NameModNum: parseInt(docProps.nameModNum),",
+                  "    ContentModNum: parseInt(docProps.contentModNum),",
+                  "    DocNum: docProps.docNum,",
+                  "    Created: {",
+                  "        UserId: envProps.authorguid,",
+                  "        Timestamp: convertDate(envProps.created)",
+                  "    },",
+                  "    Modified: {",
+                  "        UserId: envProps['modified by guid'],",
+                  "        Timestamp: convertDate(envProps.modified)",
+                  "    },",
+                  "    CheckedOut: {",
+                  "        UserId: null,",
+                  "        Timestamp: null,",
+                  "        Comment: null,",
+                  "        CollaborationEdit: null,",
+                  "        CollaborationEditType: null",
+                  "    },",
+                  "    Locked: {",
+                  "        UserId: null,",
+                  "        Comment: null,",
+                  "        Timestamp: null",
+                  "    },",
+                  "    LinkedDocuments: [],",
+                  "    CustomAttributes: [],",
+                  "    Versions: buildVersions(doc.versions),",
+                  "    Acl: buildAcl(envProps.acl),",
+                  "    RepositoryId: '',",
+                  "    PolicyId: '',",
+                  "    ClassificationId: '',",
+                  "    DeletedCabinets: [],",
+                  "    Alerts: [],",
+                  "    Approval: null",
+                  "};",
+                  "",
+                  "pm.environment.set('patchRequest', JSON.stringify(patchRequest, null, 2));",
+                  "",
+                  "console.log('✅ Patch request built');",
+                  "console.log('📋 Preview:');",
+                  "console.log(`   Document: ${patchRequest.Name}`);",
+                  "console.log(`   Versions: ${patchRequest.Versions.length}`);",
+                  "console.log(`   ACL Entries: ${patchRequest.Acl.length}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Patch request variable is set\", function () {",
+                  "    const patchRequest = pm.environment.get('patchRequest');",
+                  "    pm.expect(patchRequest).to.not.be.empty;",
+                  "});",
+                  "",
+                  "console.log('✅ Ready to patch document');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://postman-echo.com/get",
+              "protocol": "https",
+              "host": ["postman-echo", "com"],
+              "path": ["get"]
+            },
+            "description": "Builds the patch request by transforming the NMD message.\n\nThis is a dummy request that only runs the pre-request script to build the patchRequest variable.\n\nFor POC: Simplified transformation for new document creation only."
+          },
+          "response": []
+        },
+        {
+          "name": "Step 4: Patch Extended Document",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('🚀 Creating new document in metadata API...');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has documentId\", function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('documentId');",
+                  "    pm.expect(response.documentId).to.eql(pm.environment.get('documentId'));",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "console.log('✅ Document created successfully!');",
+                  "console.log('📊 Document Details:');",
+                  "console.log(`   Document ID: ${response.documentId}`);",
+                  "console.log(`   Cabinet ID: ${response.cabinetId}`);",
+                  "console.log(`   Name: ${response.name}`);",
+                  "console.log(`   State: ${response.state}`);",
+                  "console.log(`   Versions: ${response.versions?.length || 0}`);",
+                  "console.log(`   ACL Entries: ${response.acl?.length || 0}`);",
+                  "console.log('');",
+                  "console.log('🎉 POC COMPLETE! Document synchronized successfully.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{metadataToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{patchRequest}}"
+            },
+            "url": {
+              "raw": "{{metadataBaseUrl}}/v1/documents/extended/{{documentId}}",
+              "host": ["{{metadataBaseUrl}}"],
+              "path": ["v1", "documents", "extended", "{{documentId}}"]
+            },
+            "description": "Creates/updates the document in the metadata API.\n\nFor POC: Creates a new document with metadata, versions, and ACLs.\n\nThis is the main synchronization call."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

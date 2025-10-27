@@ -1,0 +1,84 @@
+{
+  "type": "nmd",
+  "envProps": {
+    "envname": "~251023154100603",
+    "containingcabs": [
+      "NG-8RZI6EOH"
+    ],
+    "authorguid": "DUCOT-pbs.nonadmin",
+    "author": "Non-Admin Automation",
+    "created": "/Date(1761248460603)/",
+    "contentkey": "HSM-CM-LAB_2019_0715|EksYvL23QQfbBvkCUXN2Tfn4Dt6EZI7yNMfDR5+Ur3u1eFlAgecI6biB2wozM1tawwxscP32cahuVHSGA6Ng3Q==|TicEOmO20kOnVVG1Nylkng==",
+    "docmodnum": 20251023194107060,
+    "url": "https://ducot.netdocuments.com/Ducot3/1/1/2/9/~251023154100603.nev",
+    "lastdocnum": 2,
+    "acl": [
+      {
+        "guid": "UG-LGSFSO0I",
+        "rights": "VESD",
+        "persistent": false
+      },
+      {
+        "guid": "DUCOT-pbs.nonadmin",
+        "rights": "VESD",
+        "persistent": false
+      }
+    ],
+    "modified": "/Date(1761248467060)/",
+    "modified by guid": "DUCOT-indexer",
+    "modified by": "Indexer P User for Internal Systems",
+    "modnum": 4,
+    "logusers": [
+      "DUCOT-pbs.nonadmin"
+    ]
+  },
+  "documents": {
+    "1": {
+      "docProps": {
+        "docNum": 1,
+        "id": "4817-7714-0004",
+        "status": 0,
+        "lastVerNo": 1,
+        "verLabel": "1.0",
+        "name": "WOPI Test File",
+        "nameModNum": 20251023194100612,
+        "contentModNum": 20251023194100777,
+        "indexType-Metadata": "COUCHBASE",
+        "indexLocation-Metadata": "/Ducot3/1/1/2/9/~251023154100603-1.mdi",
+        "indexType-FullText": "COUCHBASE",
+        "indexLocation-FullText": "/Ducot3/1/1/2/9/~251023154100603-1.fti",
+        "indexType-Entities": "COUCHBASE",
+        "indexLocation-Entities": "/Ducot3/1/1/2/9/~251023154100603-1.ent"
+      },
+      "versions": {
+        "1": {
+          "verProps": {
+            "verLabel": "1.0",
+            "exten": "wopitest",
+            "created": "/Date(1761248460620)/",
+            "creatorguid": "DUCOT-pbs.nonadmin",
+            "creator": "Non-Admin Automation",
+            "modifiedBy": "Non-Admin Automation",
+            "modifiedByGuid": "DUCOT-pbs.nonadmin",
+            "snapshots": [
+              {
+                "committed": true,
+                "stored": "/Date(1761248460779)/",
+                "storageType": "S3SSE-VERSIONED-DOCCONTENT-QA",
+                "location": "s3://851725286390-us-west-2-doc-content-storage/4817-7713-8883/versions/1/SNAPSHOT/DEFAULT?versionId=Dg8Fge1VGSidt4wFQ_SZf2tFykGT8xvX",
+                "guid": "c5ab21c5-6b7c-419d-8199-abe39cf9feb5",
+                "bytes": 27,
+                "checksumAlgorithm": "SHA256",
+                "checksum": "9C73EA96239CAB741B4E704D6C0657CAF4AED8A89D0AB67A83842ABB573F897D"
+              }
+            ],
+            "size": 27,
+            "modified": "/Date(1761248460783)/",
+            "contentTag": null
+          }
+        }
+      }
+    }
+  },
+  "Traceparent": "00-e40e13d703ee429783dbebe7e26dd879-e804f27ffa64a606-01"
+}

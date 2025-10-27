@@ -1,0 +1,8 @@
+# Node modules
+node_modules/
+
+# Python scripts
+*.py
+
+# Zone Identifier files
+*:Zone.Identifier
