@@ -271,6 +271,155 @@ Should return 200 with complete document metadata including:
 - 2 ACL entries (group + user with VESD relations)
 - EnvUrl, CabinetId, and timestamps
 
+## Testing Different Document Types
+
+**User Story 2 - NEW:** The POC now includes 7 document type samples covering 93% of production:
+
+### Available Document Types
+
+1. **Simple Document (txt)** - 45% of production
+   - Baseline POC sample
+   - Run: Original POC workflow or `05 - Test Scenario: DOCX Document` (for comparison)
+
+2. **DOCX Document** - 25% of production
+   - Microsoft Word documents
+   - Run: `05 - Test Scenario: DOCX Document`
+
+3. **PDF Document** - <1% of production
+   - Read-only PDF files
+   - Run: `06 - Test Scenario: PDF Document`
+
+4. **Folder Container (.ndfld)** - 8% of production
+   - Folder representations
+   - Run: `07 - Test Scenario: Folder Document`
+   - Note: This is a folder container, not a file
+
+5. **WOPI Test File** - 12% of production (QA)
+   - Office 365 integration test files
+   - Run: `08 - Test Scenario: WOPI Test File`
+   - Note: Used for cloud collaboration testing
+
+6. **Email Message (.eml)** - 3% of production
+   - Email documents with metadata
+   - Run: `09 - Test Scenario: Email Document`
+   - Note: Includes emailProps field
+
+7. **Archived Document** - 3% of production
+   - Documents with status=1 (Archived flag)
+   - Run: `10 - Test Scenario: Archived Document`
+   - Note: Tests status flag handling
+
+### Running Test Scenarios
+
+**Option A: Run individual scenario in Postman**
+
+1. Navigate to scenario folder (e.g., `05 - Test Scenario: DOCX Document`)
+2. Right-click folder → **Run folder**
+3. Postman Runner executes complete workflow:
+   - Load sample with dynamic ID
+   - Upload content to S3
+   - CREATE document (Scenario 1)
+   - UPDATE document (Scenario 2)
+   - Validate results
+4. Verify all tests pass (green checkmarks)
+
+**Option B: Run with Newman CLI**
+
+```bash
+cd /home/xmarchena/code/doc-ndserver-sync-wrk-postman-collection
+
+# Run specific scenario
+./node_modules/.bin/newman run doc-ndserver-sync-wrk-POC.postman_collection.json \
+  -e doc-ndserver-sync-wrk-POC.postman_environment.json \
+  --folder "05 - Test Scenario: DOCX Document"
+
+# Run all test scenarios sequentially
+./node_modules/.bin/newman run doc-ndserver-sync-wrk-POC.postman_collection.json \
+  -e doc-ndserver-sync-wrk-POC.postman_environment.json
+```
+
+**Option C: Load sample and use original POC workflow**
+
+1. Navigate to `01 - Load Sample Document`
+2. Run desired sample (e.g., "Load Sample: PDF Document")
+3. Run original POC folders: `01a`, `02`, `03`, `04`
+
+### File Type Coverage
+
+Based on production analysis of 10,000 messages:
+
+| File Type | Extension | Coverage | Sample Available |
+|-----------|-----------|----------|------------------|
+| Text | txt | 45% | ✅ sample_simple_document |
+| Word | docx | 25% | ✅ sample_docx_document |
+| WOPI Test | wopitest | 12% | ✅ sample_wopi_test |
+| Folder | ndfld | 8% | ✅ sample_folder_document |
+| Email | eml | 3% | ✅ sample_email |
+| PDF | pdf | <1% | ✅ sample_pdf_document |
+| Archived | txt (status=1) | 3% | ✅ sample_archived |
+| **Total** | | **93%** | **7 samples** |
+
+### Transformation Requirements
+
+**No transformation logic changes needed!** The POC naturally handles all file types:
+
+- Extension field (`exten`) already extracted by POC
+- Status flags (archived) already handled by `calculateDocumentState()`
+- No new metadata structures to parse
+- Same API call sequence for all types
+
+### What's Different Per Document Type
+
+**DOCX, PDF, TXT, WOPI Test:**
+- Only difference is extension field
+- File sizes vary
+- No special handling required
+
+**Folder Container (.ndfld):**
+- Extension: `ndfld`
+- Very small size (typically <100 bytes)
+- Represents folder, not file
+- Console logs note about folder container
+
+**Email (.eml):**
+- Extension: `eml`
+- Contains `emailProps` field (not actively processed in POC)
+- Future: User Story 4 will parse email metadata
+
+**Archived Document:**
+- Extension: `txt`
+- Status: `1` (Archived flag)
+- POC correctly calculates state as "ARCHIVED"
+- Tests status flag bitwise operation
+
+### Supporting API Calls
+
+**New utility requests in folder `99 - Supporting API Calls`:**
+
+1. **Get Document by ID (Extended)** - Retrieve complete metadata
+2. **Get Document by ID (Basic)** - Retrieve basic metadata only
+3. **Delete Document by ID** - Remove test documents (use with caution)
+4. **Get Cabinet Info** - Retrieve cabinet metadata
+
+Use these for manual testing, debugging, or cleanup after test scenarios.
+
+### Expected Results
+
+Each test scenario should:
+- ✅ Load sample successfully with dynamic document ID
+- ✅ Upload content to S3 via presigned URL
+- ✅ CREATE document in Scenario 1 (404 → 200)
+- ✅ UPDATE document in Scenario 2 (200 → 200)
+- ✅ Pass all validation tests
+- ✅ Console logs show clear progress
+
+### Documentation
+
+For detailed information about each sample:
+- **SAMPLES-REFERENCE-PART1.md** - Complete documentation of all 7 basic samples
+- **samples/README.md** - Sample directory documentation
+- **samples/SAMPLE_MANIFEST.txt** - Quick reference inventory
+
 ## Troubleshooting
 
 ### ❌ 401 Unauthorized
