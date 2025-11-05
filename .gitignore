@@ -6,3 +6,6 @@ node_modules/
 
 # Zone Identifier files
 *:Zone.Identifier
+
+#CSV Files
+*.csv
