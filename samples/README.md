@@ -116,6 +116,37 @@ These samples test complex metadata structures. Requires 3 new extraction functi
 
 **Total Coverage: 100% of production metadata patterns**
 
+### ACL Modification Testing (2 samples)
+
+These samples test document ACL (Access Control List) modifications through a complete CREATE and UPDATE workflow.
+
+19. **sample_acl_initial.json**
+    - Extension: `txt`
+    - ACL Entries: 3 (User: DUCOT-pbs.nonadmin VESD, Group: UG-LGSFSO0I VESD, Cabinet: NG-8RZI6EOH V)
+    - Document ID: 4817-7714-0018
+    - Use case: Initial ACL configuration for CREATE scenario
+    - Features: Demonstrates baseline ACL with different subject types (user, group, cabinet)
+
+20. **sample_acl_modified.json**
+    - Extension: `txt`
+    - ACL Entries: 4 (modified from initial)
+    - Document ID: 4817-7714-0018 (SAME as initial)
+    - Changes from Initial:
+      - ➕ Added: DUCOT-user2 (VE), UG-NEWGROUP (V)
+      - ➖ Removed: Cabinet NG-8RZI6EOH
+      - ✏️ Modified: DUCOT-pbs.nonadmin (VESD → VE)
+      - ✓ Unchanged: UG-LGSFSO0I (VESD)
+    - Use case: Modified ACL configuration for UPDATE scenario
+    - Features: Demonstrates comprehensive ACL changes (add, remove, modify, unchanged)
+    - Validation: Document name and content stay constant, only ACL changes
+
+**Relationship Between ACL Samples:**
+- Both samples use the SAME document ID (4817-7714-0018)
+- Initial is loaded for CREATE workflow
+- Modified is loaded for UPDATE workflow
+- Tests that ACL modifications work without affecting other metadata
+- Validates ModNum behavior: DocModNum increments, NameModNum and ContentModNum stay constant
+
 ---
 
 ## Sample Statistics from Production Analysis

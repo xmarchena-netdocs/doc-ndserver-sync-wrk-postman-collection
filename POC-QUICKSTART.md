@@ -416,9 +416,153 @@ Each test scenario should:
 ### Documentation
 
 For detailed information about each sample:
-- **SAMPLES-REFERENCE-PART1.md** - Complete documentation of all 7 basic samples
 - **samples/README.md** - Sample directory documentation
 - **samples/SAMPLE_MANIFEST.txt** - Quick reference inventory
+
+---
+
+## Testing ACL Modifications
+
+**NEW:** Test document ACL (Access Control List) modifications using a two-step CREATE and UPDATE workflow.
+
+### What is ACL Modification Testing?
+
+This test demonstrates that the system correctly handles access control changes without affecting other document metadata. The workflow uses:
+
+- **Initial Sample** (`sample_acl_initial`): 3 ACL entries (user, group, cabinet)
+- **Modified Sample** (`sample_acl_modified`): 4 ACL entries with comprehensive changes
+
+**Key Feature:** Both samples use the **SAME document ID**, allowing true UPDATE testing.
+
+### ACL Changes Being Tested
+
+| Change Type | Subject | Rights | Details |
+|-------------|---------|--------|---------|
+| **Modified** | DUCOT-pbs.nonadmin | VESD → VE | Permissions reduced (removed sharer & admin) |
+| **Unchanged** | UG-LGSFSO0I | VESD | Group permissions stay constant |
+| **Added** | DUCOT-user2 | VE | New user added |
+| **Added** | UG-NEWGROUP | V | New group added |
+| **Removed** | NG-8RZI6EOH | V | Cabinet removed |
+
+**Result:** 3 entries → 4 entries (2 added, 1 removed, 1 modified, 1 unchanged)
+
+### Running ACL Modification Test
+
+**Step-by-Step Workflow:**
+
+1. **Load Initial Sample**
+   ```
+   Run: 01 - Load Sample Document / Load Sample: ACL Initial
+   ```
+   - Generates new dynamic document ID
+   - Sets up baseline ACL with 3 entries
+   - Console shows ACL subjects with types and permissions
+
+2. **Upload Content**
+   ```
+   Run: Folder 01a - Upload Initial Content (all requests)
+   ```
+   - Creates snapshot and uploads to S3
+   - Required for first-time document creation
+
+3. **CREATE Document**
+   ```
+   Run: Folder 02 - Scenario 1: New Document Creation (all requests)
+   ```
+   - Document created with 3 ACL entries
+   - Expected: 200 OK
+
+4. **Load Modified Sample**
+   ```
+   Run: 01 - Load Sample Document / Load Sample: ACL Modified
+   ```
+   - **CRITICAL:** Reuses SAME document ID from step 1
+   - Console shows ACL change summary (added/removed/modified/unchanged)
+
+5. **UPDATE Document** (Skip Content Upload)
+   ```
+   Run: Folder 03 - Scenario 2: Document Update (all requests)
+   Skip: Do NOT run folder 01a again
+   ```
+   - Updates ACL only
+   - Reuses existing snapshot from CREATE
+   - Expected: 200 OK
+
+6. **Validate Results**
+   ```
+   Run: Folder 04 - Validation (all requests)
+   ```
+   - Enhanced validation with ACL modification tests
+   - Expected: ~20-25 assertions pass
+
+### What Gets Validated
+
+**Document Metadata (Should NOT Change):**
+- ✓ Document name: "ACL Modification Test Document" (unchanged)
+- ✓ Extension: "txt" (unchanged)
+- ✓ NameModNum: Constant between CREATE and UPDATE
+- ✓ ContentModNum: Constant (no content upload in UPDATE)
+
+**ACL Changes (Should Change):**
+- ✓ Initial: 3 ACL entries
+- ✓ Updated: 4 ACL entries
+- ✓ New subjects present: DUCOT-user2, UG-NEWGROUP
+- ✓ Removed subjects absent: Cabinet NG-8RZI6EOH
+- ✓ Modified permissions: DUCOT-pbs.nonadmin has VE (not VESD)
+- ✓ Unchanged subjects: UG-LGSFSO0I still has VESD
+
+**ModNum Behavior:**
+- ✓ DocModNum: Increments on UPDATE (expected)
+- ✓ NameModNum: Stays constant (name unchanged)
+- ✓ ContentModNum: Stays constant (no content upload)
+
+### Rights Mapping Reference
+
+| Code | Relationship | Description |
+|------|--------------|-------------|
+| V | viewer | Can view document |
+| E | editor | Can edit document |
+| S | sharer | Can share with others |
+| D | administrator | Full admin rights |
+
+### Subject Type Detection
+
+| Prefix | Type | Example |
+|--------|------|---------|
+| DUCOT- | User | DUCOT-pbs.nonadmin |
+| UG- | Group | UG-LGSFSO0I |
+| NG- or CA- | Cabinet | NG-8RZI6EOH |
+
+### Technical Notes
+
+- **Transformation Logic:** Uses existing `buildAcl()` function from POC
+- **No Code Changes:** ACL transformation handles add/remove/modify automatically
+- **Same Document ID:** Both samples must use the same ID for proper UPDATE testing
+- **No Content Upload:** UPDATE reuses snapshot from CREATE (efficient)
+- **Independent Test:** Can run separately from other document type scenarios
+
+### Common Issues
+
+**Error: "Must load ACL Initial sample before loading ACL Modified"**
+- **Cause:** Tried to load Modified sample first
+- **Fix:** Always load Initial sample first, run CREATE, then load Modified
+
+**Error: Document IDs don't match**
+- **Cause:** Generated new ID for Modified sample
+- **Fix:** "Load Sample: ACL Modified" automatically reuses existing `documentId` from environment
+
+**Validation Fails: ACL entries don't match expected**
+- **Cause:** Didn't run UPDATE with Modified sample
+- **Fix:** Ensure you loaded Modified sample before running Scenario 2
+
+### Documentation
+
+For detailed ACL modification testing guide:
+- **00 - Setup / README - ACL Modification Testing** - Complete workflow guide with examples
+- **samples/README.md** - ACL sample documentation
+- **samples/SAMPLE_MANIFEST.txt** - ACL sample details
+
+---
 
 ## Troubleshooting
 

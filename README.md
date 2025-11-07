@@ -7,7 +7,7 @@ This repository contains a **production-ready Postman collection** implementing 
 | Component | Status | Details |
 |-----------|--------|---------|
 | **POC Implementation** | ✅ **COMPLETED** | Two scenarios (CREATE + UPDATE) with validation |
-| **Sample Creation** | ✅ **COMPLETED** | 18 samples covering 100% of production patterns |
+| **Sample Creation** | ✅ **COMPLETED** | 20 samples covering 100% of production patterns |
 | **Production Data Analysis** | ✅ **COMPLETED** | 10,000 messages analyzed, findings documented |
 | **Basic Document Types** | ✅ **COMPLETED** | Story 2: 7 basic file types with test scenarios (4 hours) |
 | **Advanced Metadata** | 🔲 Not Started | Story 3: 11 advanced samples (7 hours) |
@@ -143,7 +143,7 @@ doc-ndserver-sync-wrk-postman-collection/
   - Recommendations for production parity
 
 ### Sample Documentation
-- **[samples/README.md](samples/README.md)** - Complete documentation of all 18 samples
+- **[samples/README.md](samples/README.md)** - Complete documentation of all 20 samples
   - Basic types (7 samples): txt, docx, pdf, ndfld, wopitest, eml, archived
   - Advanced metadata (11 samples): custom attrs, signatures, indexes, WOPI, versions, ACLs
   - Production statistics and usage patterns
@@ -279,7 +279,7 @@ doc-ndserver-sync-wrk-postman-collection/
 
 **Production-ready when:**
 - ✅ POC implemented and working (DONE)
-- ✅ 18 samples created covering 100% of production patterns (DONE)
+- ✅ 20 samples created covering 100% of production patterns (DONE)
 - ✅ Production data analyzed (10,000 messages) (DONE)
 - [ ] All 7 basic file type scenarios pass (Story 2)
 - [ ] All 11 advanced metadata scenarios pass (Story 3)
@@ -299,7 +299,7 @@ doc-ndserver-sync-wrk-postman-collection/
 | Version | Date | Status | Notes |
 |---------|------|--------|-------|
 | 1.0 POC | 2025-10-24 | ✅ Completed | Two scenarios + validation working |
-| 1.1 Samples | 2025-10-27 | ✅ Completed | 18 samples created, production analysis done |
+| 1.1 Samples | 2025-10-27 | ✅ Completed | 20 samples created, production analysis done |
 | 2.0 Basic Types | TBD | 🔲 Planned | Story 2: 7 file types (4 hours) |
 | 3.0 Advanced Metadata | TBD | 🔲 Planned | Story 3: 11 samples + 3 extractors (7 hours) |
 | 4.0 Production | TBD | 🔲 Planned | Story 4: Full worker parity (52 hours) |
