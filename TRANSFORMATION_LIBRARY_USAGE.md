@@ -2,78 +2,194 @@
 
 ## Overview
 
-The Postman collection has been enhanced with a **centralized transformation library** that implements all NMD message transformations at the collection level. This eliminates code duplication and ensures consistency across all scenarios.
+This project provides **two transformation libraries** for converting NetDocuments NMD messages to metadata service API requests:
+
+- **REST API v1 (`transformation-library.js`)** - Legacy PascalCase format
+- **REST API v3 (`v3_transformation_library.js`)** - Modern camelCase format with additional v1→v3 conversion functions
+
+Both libraries implement centralized transformation logic at the collection level to eliminate code duplication and ensure consistency across all scenarios.
+
+---
+
+## 🔄 REST API v1 vs v3 Architecture
+
+### Library Organization
+
+Both libraries share the **same core transformation functions** for parsing NMD messages. The v3 library extends v1 with additional conversion layers:
+
+```
+┌─────────────────────────────────────────┐
+│  transformation-library.js (v1)         │
+│  ────────────────────────────────────── │
+│  Core NMD Parsing Functions:            │
+│  • buildPatchRequest()                   │
+│  • buildAcl()                            │
+│  • buildVersions()                       │
+│  • extractCustomAttributes()             │
+│  • determineDocumentState()              │
+│  • etc.                                  │
+│                                          │
+│  Output: PascalCase v1 API format       │
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│  v3_transformation_library.js (v3)      │
+│  ────────────────────────────────────── │
+│  LAYER 1: Same core functions as v1     │
+│  • buildPatchRequest() [IDENTICAL]       │
+│  • buildAcl() [IDENTICAL]                │
+│  • buildVersions() [IDENTICAL]           │
+│  • etc.                                  │
+│                                          │
+│  LAYER 2: v1→v3 Conversion Pipeline     │
+│  • convertToCamelCase()                  │
+│  • transformToV3Structure()              │
+│  • convertEmptyStringsToNull()           │
+│  • applyV3Transformations()              │
+│                                          │
+│  Output: camelCase v3 API format        │
+└─────────────────────────────────────────┘
+```
+
+### Key Architectural Differences
+
+| Aspect | REST API v1 | REST API v3 |
+|--------|-------------|-------------|
+| **Core Functions** | Lines 1-621 | Lines 1-621 (identical) |
+| **Conversion Layer** | None | Lines 632-884 (v1→v3 pipeline) |
+| **Main Entry Point** | `buildAndSavePatchRequest()` outputs v1 | `buildAndSavePatchRequest()` outputs v3 |
+| **Transformation Flow** | NMD → v1 format | NMD → v1 format → v3 format |
+| **Code Size** | 736 lines | 1007 lines (+37% for conversion) |
+
+---
 
 ## What Was Implemented
 
-### ✅ Collection-Level Pre-Request Script
+### ✅ Core NMD Transformation Functions (Both v1 & v3)
 
-A comprehensive JavaScript library (567 lines) has been added as a collection-level pre-request script, providing:
+Both libraries provide comprehensive NMD message parsing (736 lines of shared code):
 
-1. **Date Conversion**
+1. **Date Conversion** (Lines 15-46)
    - `/Date(milliseconds)/` → ISO 8601 format
    - ModNum (long format) → ISO 8601 conversion
 
-2. **ACL Transformation**
+2. **ACL Transformation** (Lines 48-131)
    - Rights mapping: `VESD` → `["viewer", "editor", "sharer", "administrator"]`
    - Subject type detection: `UG-` → group, `NG-`/`CA-` → cabinet, `DUCOT-` → user
    - Version-level ACL parsing (official_access_only)
 
-3. **Version Building**
+3. **Version Building** (Lines 133-172)
    - Complete version transformation with dates, state, timestamps
    - Legacy signatures support
 
-4. **Status Flags Processing** ⭐ NEW
+4. **Status Flags Processing** (Lines 174-288)
    - Bitwise flag extraction: archived, checked out, locked, autoversion
    - CheckedOut object building with user, timestamp, comment
-   - Locked object building
+   - Locked object building with lockDocumentModel parsing
 
-5. **Custom Attributes** ⭐ NEW
+5. **Custom Attributes** (Lines 290-344)
    - Dynamic property extraction from docProps
-   - IsDeleted flag support
+   - `cp|AttributeId|FieldNum` format parsing
+   - IsDeleted flag support (v1 only)
 
-6. **Linked Documents** ⭐ NEW
+6. **Linked Documents** (Lines 346-358)
    - Comma-separated links parsing
 
-7. **Folder Hierarchy** ⭐ NEW
+7. **Folder Hierarchy** (Lines 360-404)
    - Parent folders (space-separated)
    - Folder tree (pipe-separated)
 
-8. **DLP and Classification** ⭐ NEW
+8. **DLP and Classification** (Lines 406-430)
    - Classification ID extraction
    - Policy ID extraction
 
-9. **Email Metadata** ⭐ NEW
+9. **Email Metadata** (Lines 432-471)
    - XML parsing for email properties
    - From, To, Cc, Subject, SentDate extraction
 
-10. **Deleted Cabinets** ⭐ NEW
+10. **Deleted Cabinets** (Lines 473-484)
     - Deleted cabinet array handling
 
-11. **EnvUrl Extraction**
+11. **EnvUrl Extraction** (Lines 486-499)
     - Full URL → S3 key path conversion
+
+12. **Document State Logic** (Lines 501-545)
+    - PENDING, ACTIVE, DELETED, PURGE state determination
+    - Matches C# NmdDocumentStateConverter logic
+
+13. **Main Transformation** (Lines 547-621)
+    - `buildPatchRequest()` - Assembles complete PATCH request
+    - `buildAndSavePatchRequest()` - Helper that saves to environment
+
+### ✅ v3 Conversion Layer (v3 Only)
+
+The v3 library adds specialized conversion functions (Lines 632-884):
+
+1. **Case Conversion** (`convertToCamelCase()` - Lines 639-658)
+   - PascalCase → camelCase recursively
+   - `DocumentId` → `documentId`
+   - `Created` → `created`
+
+2. **Structure Transformation** (`transformToV3Structure()` - Lines 660-752)
+   - Flattens audit fields: `Created { UserId, Timestamp }` → `createdBy`, `createdAt`
+   - Renames nested fields:
+     - `CheckedOut { UserId }` → `checkedOut { checkedOutBy }`
+     - `Locked { UserId }` → `locked { lockedBy }`
+   - Version field mapping: `Size` → `contentSize`, adds `fileName` and `eTag`
+
+3. **Null Cleanup** (`convertEmptyStringsToNull()` - Lines 754-805)
+   - Converts empty strings to null for nullable fields (`policyId`, `classificationId`, `eTag`)
+   - Removes unsupported fields (`isDeleted` from custom attributes)
+
+4. **v3 API Validation Fixes** (`applyV3Transformations()` - Lines 807-884)
+   - Adds leading slash to EnvUrl: `Ducot3/1/1/2/9/~file.nev` → `/Ducot3/1/1/2/9/~file.nev`
+   - Cabinet fallback for DELETED documents
+   - Custom attribute consolidation (merges duplicate `cp|` entries)
+   - Timestamp ordering validation: enforces `modifiedAt >= createdAt`
+   - eTag handling for optimistic locking
+
+---
 
 ## File Structure
 
 ```
 doc-ndserver-sync-wrk-postman-collection/
-├── doc-ndserver-sync-wrk-POC.postman_collection.json      # Updated collection
-├── doc-ndserver-sync-wrk-POC.postman_collection.json.backup  # Original backup
-├── doc-ndserver-sync-wrk-POC.postman_environment.json     # Environment file
-├── transformation-library.js                               # Source library code
-├── inject-transformation-library.py                        # Injection script
-├── NMD_TRANSFORMATION_ANALYSIS.md                          # Detailed analysis
-└── TRANSFORMATION_LIBRARY_USAGE.md                         # This file
+│
+├── REST API v1 (Legacy)
+│   ├── doc-ndserver-sync-wrk-POC.postman_collection.json      # v1 collection
+│   ├── doc-ndserver-sync-wrk-POC.postman_environment.json     # v1 environment
+│   └── transformation-library.js                               # v1 transformation source (736 lines)
+│
+├── REST API v3 (Modern)
+│   ├── doc-ndserver-sync-wrk-POC-v3.postman_collection.json  # v3 collection
+│   ├── doc-ndserver-sync-wrk-POC-v3.postman_environment.json # v3 environment
+│   └── v3_transformation_library.js                           # v3 transformation source (1007 lines)
+│
+└── Documentation
+    ├── TRANSFORMATION_LIBRARY_USAGE.md                         # This file
+    └── NMD_TRANSFORMATION_ANALYSIS.md                          # Detailed analysis
 ```
 
-## How to Use the Updated Collection
+---
 
-### 1. Import the Collection
+## How to Use the Transformation Libraries
+
+### Choose Your API Version
+
+**For REST API v1 (Legacy):**
 
 1. Open Postman
 2. Click **Import**
 3. Select `doc-ndserver-sync-wrk-POC.postman_collection.json`
 4. Import `doc-ndserver-sync-wrk-POC.postman_environment.json`
+5. Select the environment in Postman
+
+**For REST API v3 (Modern):**
+
+1. Open Postman
+2. Click **Import**
+3. Select `doc-ndserver-sync-wrk-POC-v3.postman_collection.json`
+4. Import `doc-ndserver-sync-wrk-POC-v3.postman_environment.json`
 5. Select the environment in Postman
 
 ### 2. Obtain Tokens
@@ -94,9 +210,11 @@ Paste the tokens into the environment variables:
 
 ### 3. Run the Scenarios
 
-The transformation library is automatically available to all requests in the collection.
+The transformation library is automatically available to all requests in the collection. **Both v1 and v3 collections use identical pre-request scripts** - the only difference is the output format.
 
 #### Scenario 1: New Document Creation (CREATE)
+
+**Works identically in both v1 and v3 collections:**
 
 ```
 01 - Load Sample Document
@@ -127,7 +245,7 @@ The transformation library is automatically available to all requests in the col
 
 ### 4. Check Console Output
 
-The transformation library provides detailed logging:
+**Both v1 and v3 libraries provide identical logging:**
 
 ```
 ✅ CREATE patch request built successfully
@@ -150,37 +268,109 @@ If advanced features are detected:
    DLP Policy: AC-DLPPOLICY1
 ```
 
+### 5. Compare Output Formats
+
+**v1 output (PascalCase):**
+```json
+{
+  "DocumentId": "251023154100603",
+  "Name": "Sample Document",
+  "Created": {
+    "UserId": "DUCOT-user123",
+    "Timestamp": "2024-09-09T07:33:10.170Z"
+  },
+  "CheckedOut": {
+    "UserId": null,
+    "Timestamp": null,
+    "Comment": null
+  },
+  "Versions": [{
+    "VersionId": 1,
+    "Size": 12345
+  }],
+  "CustomAttributes": [{
+    "Key": "CA-7MZORBLU",
+    "Values": ["value1"],
+    "IsDeleted": false
+  }]
+}
+```
+
+**v3 output (camelCase):**
+```json
+{
+  "documentId": "251023154100603",
+  "name": "Sample Document",
+  "createdBy": "DUCOT-user123",
+  "createdAt": "2024-09-09T07:33:10.170Z",
+  "checkedOut": {
+    "checkedOutBy": null,
+    "checkedOutAt": null,
+    "comment": null
+  },
+  "versions": [{
+    "versionId": 1,
+    "contentSize": 12345,
+    "fileName": "document.txt",
+    "eTag": ""
+  }],
+  "customAttributes": [{
+    "key": "CA-7MZORBLU",
+    "values": ["value1"]
+  }]
+}
+```
+
+---
+
 ## Available Functions
 
-All functions are automatically available to every request in the collection:
-
-### Main Function
+### Main Function (Same in Both v1 and v3)
 
 ```javascript
 buildAndSavePatchRequest(operationType)
 ```
 - **Parameters**: `'CREATE'` or `'UPDATE'`
 - **Description**: Builds complete PATCH request and saves to environment variable `patchRequest`
+- **v1 behavior**: Outputs PascalCase format
+- **v3 behavior**: Outputs camelCase format with v3 API validations
 
 ### Advanced Usage
 
-For more control, you can call individual functions:
-
+**For v1 collection:**
 ```javascript
 // Get NMD message
 const nmdMessage = JSON.parse(pm.environment.get('nmdMessage'));
 
-// Build patch request with custom logic
+// Build v1 patch request
 const patchRequest = buildPatchRequest(nmdMessage, 'CREATE');
 
-// Modify as needed
+// Modify as needed (PascalCase)
 patchRequest.Name = "Custom Name";
 
 // Save to environment
 pm.environment.set('patchRequest', JSON.stringify(patchRequest, null, 2));
 ```
 
-### Utility Functions
+**For v3 collection:**
+```javascript
+// Get NMD message
+const nmdMessage = JSON.parse(pm.environment.get('nmdMessage'));
+
+// Build v1 format first
+const v1PatchRequest = buildPatchRequest(nmdMessage, 'CREATE');
+
+// Apply v3 transformations
+const v3PatchRequest = applyV3Transformations(v1PatchRequest);
+
+// Modify as needed (camelCase)
+v3PatchRequest.name = "Custom Name";
+
+// Save to environment
+pm.environment.set('patchRequest', JSON.stringify(v3PatchRequest, null, 2));
+```
+
+### Core Utility Functions (Available in Both v1 and v3)
 
 ```javascript
 // Date conversion
@@ -198,12 +388,33 @@ const flags = extractStatusFlags(docProps.status)
 // Custom attributes
 const attrs = extractCustomAttributes(docProps)
 
-// And many more...
+// Document state
+const state = determineDocumentState(nmdMessage)  // → "PENDING", "ACTIVE", "DELETED", or "PURGE"
 ```
 
-See `transformation-library.js` for complete function documentation.
+### v3-Only Conversion Functions
+
+```javascript
+// Convert PascalCase to camelCase
+const camelCase = convertToCamelCase(v1Object)
+
+// Transform structure (flatten audit fields, rename nested properties)
+const transformed = transformToV3Structure(camelCaseObject)
+
+// Clean up empty strings and unsupported fields
+const cleaned = convertEmptyStringsToNull(transformedObject)
+
+// Apply all v3 transformations at once
+const v3Format = applyV3Transformations(v1PatchRequest)
+```
+
+See `transformation-library.js` (v1) or `v3_transformation_library.js` (v3) for complete function documentation.
+
+---
 
 ## Scenario Script Changes
+
+**Note**: Script changes are **identical for both v1 and v3 collections**. The only difference is the output format produced by the library.
 
 ### Before (Scenario 1 - Step 3)
 
@@ -340,7 +551,7 @@ console.log(`   ACL Entries: ${patchRequest.Acl.length}`);
 
 **Lines of code: ~150**
 
-### After (Scenario 1 - Step 3)
+### After (Scenario 1 - Step 3) - Same for Both v1 and v3
 
 ```javascript
 // Use centralized transformation library
@@ -352,22 +563,32 @@ buildAndSavePatchRequest('CREATE');
 ### Reduction
 
 - **Before**: 150+ lines of duplicated code per scenario
-- **After**: 2 lines per scenario
+- **After**: 2 lines per scenario (same for v1 and v3)
 - **Savings**: ~98% reduction in scenario script size
 - **Benefits**:
   - Single source of truth for all transformations
   - Easy to maintain and update
   - Consistent behavior across all scenarios
   - All advanced features included by default
+  - Switching between v1 and v3 only requires changing collection/environment files
 
-## Testing the Updated Collection
+---
+
+## Testing the Collections
 
 ### 1. Verify Collection-Level Script
 
+**For v1 collection:**
 1. Open the collection in Postman
 2. Click on the collection name
 3. Go to **Pre-request Scripts** tab
-4. You should see 567 lines of transformation library code
+4. You should see 736 lines of transformation library code
+
+**For v3 collection:**
+1. Open the collection in Postman
+2. Click on the collection name
+3. Go to **Pre-request Scripts** tab
+4. You should see 1007 lines of transformation library code (736 core + 271 conversion)
 
 ### 2. Run a Simple Test
 
@@ -396,27 +617,35 @@ buildAndSavePatchRequest('CREATE');
 2. All scenarios should pass
 3. Check console output for detailed transformation logs
 
+---
+
 ## Comparison with C# Application
 
-The Postman transformation library now includes **ALL** features from the C# application except Delta Patching:
+Both transformation libraries now include **ALL** features from the C# application except Delta Patching:
 
-| Feature | C# App | Postman Before | Postman After |
-|---------|--------|----------------|---------------|
-| Date Conversion | ✅ | ✅ | ✅ |
-| ACL Rights Mapping | ✅ | ✅ | ✅ |
-| Subject Type Detection | ✅ | ✅ | ✅ |
-| Version Building | ✅ | ✅ | ✅ |
-| Version-Level ACL | ✅ | ❌ | ✅ |
-| Custom Attributes | ✅ | ❌ | ✅ |
-| Status Flags | ✅ | ❌ | ✅ |
-| Email Metadata | ✅ | ❌ | ✅ |
-| DLP/Classification | ✅ | ❌ | ✅ |
-| Linked Documents | ✅ | ❌ | ✅ |
-| Parent Folders | ✅ | ❌ | ✅ |
-| Folder Tree | ✅ | ❌ | ✅ |
-| Deleted Cabinets | ✅ | ❌ | ✅ |
-| EnvUrl Extraction | ✅ | ⚠️ | ✅ |
-| Delta Patching | ✅ | ❌ | ❌ (intentionally excluded) |
+| Feature | C# App | Postman Before | v1 Library | v3 Library |
+|---------|--------|----------------|-----------|-----------|
+| Date Conversion | ✅ | ✅ | ✅ | ✅ |
+| ACL Rights Mapping | ✅ | ✅ | ✅ | ✅ |
+| Subject Type Detection | ✅ | ✅ | ✅ | ✅ |
+| Version Building | ✅ | ✅ | ✅ | ✅ |
+| Version-Level ACL | ✅ | ❌ | ✅ | ✅ |
+| Custom Attributes | ✅ | ❌ | ✅ | ✅ (consolidated) |
+| Status Flags | ✅ | ❌ | ✅ | ✅ |
+| Email Metadata | ✅ | ❌ | ✅ | ✅ |
+| DLP/Classification | ✅ | ❌ | ✅ | ✅ |
+| Linked Documents | ✅ | ❌ | ✅ | ✅ |
+| Parent Folders | ✅ | ❌ | ✅ | ✅ |
+| Folder Tree | ✅ | ❌ | ✅ | ✅ |
+| Deleted Cabinets | ✅ | ❌ | ✅ | ✅ |
+| EnvUrl Extraction | ✅ | ⚠️ | ✅ | ✅ (with `/` prefix) |
+| PascalCase → camelCase | N/A | ❌ | ❌ | ✅ |
+| Audit Field Flattening | N/A | ❌ | ❌ | ✅ |
+| Timestamp Validation | ✅ | ❌ | ❌ | ✅ |
+| Optimistic Locking (eTag) | ✅ | ❌ | ❌ | ✅ |
+| Delta Patching | ✅ | ❌ | ❌ | ❌ (intentionally excluded) |
+
+---
 
 ## Troubleshooting
 
@@ -425,8 +654,10 @@ The Postman transformation library now includes **ALL** features from the C# app
 **Problem**: Error: `buildAndSavePatchRequest is not defined`
 
 **Solution**:
-1. Ensure you imported the **updated** collection file
-2. Check that the collection has a pre-request script (567 lines)
+1. Ensure you imported the correct collection file:
+   - v1: 736 lines of pre-request script
+   - v3: 1007 lines of pre-request script
+2. Check that the collection has a pre-request script at collection level
 3. Restart Postman if necessary
 
 ### Transformation Errors
@@ -447,38 +678,99 @@ The Postman transformation library now includes **ALL** features from the C# app
 - Check your NMD sample data in the environment variable `sample_simple_document`
 - If the sample doesn't have these fields, the output won't include them (as expected)
 
-## Extending the Library
+### Wrong Output Format (PascalCase vs camelCase)
 
-To add new transformation functions:
+**Problem**: Expected camelCase but got PascalCase (or vice versa)
 
-1. Edit `transformation-library.js`
+**Solution**:
+- Check which collection you imported:
+  - `doc-ndserver-sync-wrk-POC.postman_collection.json` = v1 (PascalCase)
+  - `doc-ndserver-sync-wrk-POC-v3.postman_collection.json` = v3 (camelCase)
+- Ensure the matching environment is selected:
+  - `doc-ndserver-sync-wrk-POC.postman_environment.json` for v1
+  - `doc-ndserver-sync-wrk-POC-v3.postman_environment.json` for v3
+
+---
+
+## Extending the Libraries
+
+### Adding Core NMD Parsing Functions
+
+To add new core transformation functions (shared by both v1 and v3):
+
+1. Edit `transformation-library.js` (v1 source)
 2. Add your function with proper JSDoc comments
-3. Run `python3 inject-transformation-library.py` to update the collection
-4. Re-import the collection in Postman
+3. Copy the same function to `v3_transformation_library.js` at the corresponding line
+4. Update both collections if using an injection script
+5. Re-import collections in Postman
+
+### Adding v3-Only Conversion Functions
+
+To add new v3-specific conversion logic:
+
+1. Edit `v3_transformation_library.js` only
+2. Add your conversion function in the "V3 API TRANSFORMATION FUNCTIONS" section (after line 632)
+3. Update the `applyV3Transformations()` pipeline if needed
+4. Re-import the v3 collection in Postman
+
+---
 
 ## Files to Version Control
 
 Recommended files to commit to Git:
 
 ```
-✅ doc-ndserver-sync-wrk-POC.postman_collection.json
-✅ doc-ndserver-sync-wrk-POC.postman_environment.json
-✅ transformation-library.js
-✅ inject-transformation-library.py
-✅ NMD_TRANSFORMATION_ANALYSIS.md
-✅ TRANSFORMATION_LIBRARY_USAGE.md
-❌ doc-ndserver-sync-wrk-POC.postman_collection.json.backup (local backup only)
+✅ REST API v1
+   ├── doc-ndserver-sync-wrk-POC.postman_collection.json
+   ├── doc-ndserver-sync-wrk-POC.postman_environment.json
+   └── transformation-library.js
+
+✅ REST API v3
+   ├── doc-ndserver-sync-wrk-POC-v3.postman_collection.json
+   ├── doc-ndserver-sync-wrk-POC-v3.postman_environment.json
+   └── v3_transformation_library.js
+
+✅ Documentation
+   ├── NMD_TRANSFORMATION_ANALYSIS.md
+   ├── TRANSFORMATION_LIBRARY_USAGE.md
+   └── README.md
+
+❌ Backup files (local only)
+   └── *.backup.json
 ```
+
+---
 
 ## Summary
 
-The Postman collection now features:
+Both transformation libraries provide:
 
+### Shared Features (v1 & v3)
 1. ✅ **Centralized transformation logic** at collection level
-2. ✅ **Zero code duplication** in scenario scripts
-3. ✅ **Complete feature parity** with C# application (except Delta Patching)
+2. ✅ **Zero code duplication** in scenario scripts (same 2-line scripts for both)
+3. ✅ **Complete feature parity** with C# NMD parsing (except Delta Patching)
 4. ✅ **Easy maintenance** - update once, apply everywhere
 5. ✅ **Detailed logging** for debugging
 6. ✅ **Production-quality transformations** with all edge cases handled
 
-The collection is now ready for comprehensive POC testing and accurately replicates the production `doc-ndserver-sync-wrk` behavior.
+### v1-Specific Features
+- ✅ **PascalCase output** matching legacy API format
+- ✅ **Nested audit structures** (`Created { UserId, Timestamp }`)
+- ✅ **Custom attribute IsDeleted** flag support
+- ✅ **Direct NMD → v1 API** transformation
+
+### v3-Specific Features
+- ✅ **camelCase output** matching modern API conventions
+- ✅ **Flattened audit fields** (`createdBy`, `createdAt`)
+- ✅ **Stricter validations** (timestamp ordering, required fields)
+- ✅ **Optimistic locking** with eTag support
+- ✅ **Custom attribute consolidation** (merges duplicates)
+- ✅ **NMD → v1 → v3 pipeline** for maximum reliability
+
+### Architecture Benefits
+- 🔄 **Shared core logic** - 736 lines maintained once, used in both libraries
+- 🎯 **Single source of truth** - core NMD parsing identical in v1 and v3
+- 🚀 **Easy API migration** - switch between v1 and v3 by changing collection only
+- 📊 **Side-by-side testing** - compare v1 vs v3 outputs easily
+
+Both collections are ready for comprehensive POC testing and accurately replicate the production `doc-ndserver-sync-wrk` behavior for their respective API versions.

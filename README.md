@@ -1,6 +1,11 @@
 # doc-ndserver-sync-wrk Postman Collection
 
-This repository contains a **production-ready Postman collection** implementing the `doc-ndserver-sync-wrk` worker functionality, with comprehensive samples based on 10,000+ production sync messages.
+This repository contains **two production-ready Postman collections** implementing the `doc-ndserver-sync-wrk` worker functionality:
+
+- **REST API v1** - Legacy metadata service endpoints (PascalCase, structured audit fields)
+- **REST API v3** - Modern metadata service endpoints (camelCase, flattened audit fields)
+
+Both collections share comprehensive samples based on 10,000+ production sync messages.
 
 ## 📊 Project Status
 
@@ -17,10 +22,11 @@ This repository contains a **production-ready Postman collection** implementing 
 
 ---
 
-## 🚀 Quick Start (POC)
+## 🚀 Quick Start
 
-The POC is **ready to run** and demonstrates the complete synchronization workflow:
+### Choose Your API Version
 
+**REST API v1 (Legacy)**
 ```bash
 # 1. Import files into Postman
 #    - doc-ndserver-sync-wrk-POC.postman_collection.json
@@ -37,7 +43,22 @@ cd /home/xmarchena/code/doc-ndserver-sync-wrk-postman-collection
   -e doc-ndserver-sync-wrk-POC.postman_environment.json
 ```
 
-**📖 See [POC-QUICKSTART.md](POC-QUICKSTART.md) for detailed instructions**
+**REST API v3 (Modern)**
+```bash
+# 1. Import files into Postman
+#    - doc-ndserver-sync-wrk-POC-v3.postman_collection.json
+#    - doc-ndserver-sync-wrk-POC-v3.postman_environment.json
+
+# 2. Obtain tokens (same as v1)
+cd /home/xmarchena/code/TokenGenerator
+dotnet run doc-metadata-api-svc doc-metadata-api-svc "service.create service.read service.update service.delete"
+dotnet run doc-content-api-svc doc-content-api-svc "service.create service.read service.update service.delete"
+
+# 3. Run with Newman CLI
+cd /home/xmarchena/code/doc-ndserver-sync-wrk-postman-collection
+./node_modules/.bin/newman run doc-ndserver-sync-wrk-POC-v3.postman_collection.json \
+  -e doc-ndserver-sync-wrk-POC-v3.postman_environment.json
+```
 
 ---
 
@@ -83,10 +104,16 @@ doc-ndserver-sync-wrk-postman-collection/
 │           ├── sample_multiple_snapshots.json          # ✅ Multiple renditions
 │           └── sample_complex.json                     # ✅ All features combined
 │
-├── 📦 POC Files (Completed)
-│   ├── doc-ndserver-sync-wrk-POC.postman_collection.json     # ✅ POC collection (66KB)
-│   ├── doc-ndserver-sync-wrk-POC.postman_environment.json    # ✅ POC environment (8KB)
+├── 📦 REST API v1 Files (Legacy - PascalCase)
+│   ├── doc-ndserver-sync-wrk-POC.postman_collection.json     # ✅ v1 collection (66KB)
+│   ├── doc-ndserver-sync-wrk-POC.postman_environment.json    # ✅ v1 environment (8KB)
+│   ├── transformation-library.js                              # ✅ v1 transformation logic
 │   └── doc-ndserver-sync-wrk-POC.postman_collection.backup.json
+│
+├── 📦 REST API v3 Files (Modern - camelCase)
+│   ├── doc-ndserver-sync-wrk-POC-v3.postman_collection.json  # ✅ v3 collection
+│   ├── doc-ndserver-sync-wrk-POC-v3.postman_environment.json # ✅ v3 environment
+│   └── v3_transformation_library.js                           # ✅ v3 transformation logic
 │
 └── 🛠️ Utilities
     ├── extract_samples.py                              # ✅ CSV → JSON extractor
@@ -94,6 +121,37 @@ doc-ndserver-sync-wrk-postman-collection/
     ├── package.json                                    # ✅ Newman CLI dependency
     └── .gitignore                                      # ✅ Ignores node_modules, python, zones
 ```
+
+---
+
+## 🔄 REST API v1 vs v3 Comparison
+
+| Feature | REST API v1 (Legacy) | REST API v3 (Modern) |
+|---------|---------------------|---------------------|
+| **Case Convention** | PascalCase | camelCase |
+| **Audit Fields** | Nested objects: `Created { UserId, Timestamp }` | Flattened: `createdBy`, `createdAt` |
+| **CheckedOut Structure** | `CheckedOut { UserId, Timestamp, Comment }` | `checkedOut { checkedOutBy, checkedOutAt, comment }` |
+| **Locked Structure** | `Locked { UserId, Timestamp, Comment }` | `locked { lockedBy, lockedAt, comment }` |
+| **Version Fields** | `Size` | `contentSize`, requires `fileName` and `eTag` |
+| **Custom Attributes** | Supports `IsDeleted` flag | No `isDeleted` field - consolidates duplicates |
+| **EnvUrl Format** | `Ducot3/1/1/2/9/~timestamp.nev` | `/Ducot3/1/1/2/9/~timestamp.nev` (leading slash) |
+| **Timestamp Validation** | Permissive | Strict: `modifiedAt >= createdAt` enforced |
+| **Optimistic Locking** | Not required | Requires `eTag` for UPDATE operations |
+| **Transformation Library** | `transformation-library.js` | `v3_transformation_library.js` (includes v1→v3 converters) |
+| **Endpoints** | `/api/documents/{id}` | `/api/v3/documents/{id}` |
+
+### When to Use Each Version
+
+**Use REST API v1 when:**
+- Working with legacy systems that expect PascalCase
+- Need backward compatibility with existing integrations
+- Custom attributes require deletion tracking (`IsDeleted`)
+
+**Use REST API v3 when:**
+- Building new integrations (recommended)
+- Need modern JavaScript/JSON conventions (camelCase)
+- Want stricter validation and data integrity checks
+- Require optimistic locking for concurrent updates
 
 ---
 
