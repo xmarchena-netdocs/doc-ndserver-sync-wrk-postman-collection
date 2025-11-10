@@ -3,9 +3,22 @@
 This repository contains **two production-ready Postman collections** implementing the `doc-ndserver-sync-wrk` worker functionality:
 
 - **REST API v1** - Legacy metadata service endpoints (PascalCase, structured audit fields)
-- **REST API v3** - Modern metadata service endpoints (camelCase, flattened audit fields)
+- **REST API v3** - Modern metadata service endpoints (camelCase, flattened audit fields) ✨ **NEW: 7 document type scenarios (93% production coverage)**
 
 Both collections share comprehensive samples based on production sync message patterns.
+
+## ✨ Latest Updates
+
+**Scenario A Expansion** - Now tests 7 document types covering 93% of production:
+- **A1**: TXT Document (Baseline) - 45% of production
+- **A2**: DOCX Document (Word) - 25% of production
+- **A3**: PDF Document
+- **A4**: NDFLD Document (Folder) - 8% of production
+- **A5**: WOPITEST Document (Office 365) - 12% of production
+- **A6**: EML Document (Email) - 3% of production
+- **A7**: Archived Document
+
+Each sub-scenario tests the complete CREATE → Upload → Validate workflow with extension-specific content and validation.
 
 ---
 
