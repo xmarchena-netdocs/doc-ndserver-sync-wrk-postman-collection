@@ -191,7 +191,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -277,7 +280,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -789,7 +897,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -875,7 +986,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -1387,7 +1603,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -1473,7 +1692,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -1985,7 +2309,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -2071,7 +2398,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -2583,7 +3015,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -2669,7 +3104,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -3181,7 +3721,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -3267,7 +3810,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -3779,7 +4427,10 @@
                           "}",
                           "eval(libCode);",
                           "// Build patch request",
-                          "buildAndSavePatchRequest('CREATE');"
+                          "buildAndSavePatchRequest('CREATE');",
+                          "",
+                          "// Extract and save ACL relationships",
+                          "extractAndSaveAclRelationships();"
                         ]
                       }
                     }
@@ -3865,7 +4516,112 @@
               "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
             },
             {
-              "name": "02a - Upload Initial Content",
+              "name": "02b - Sync ACL Relationships",
+              "item": [
+                {
+                  "name": "PUT ACL Relationships",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "",
+                          "let shouldPut = false;",
+                          "let aclArray = [];",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        aclArray = JSON.parse(aclRelationships);",
+                          "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                          "}",
+                          "",
+                          "if (shouldPut) {",
+                          "    console.log('');",
+                          "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                          "    console.log('==================================================');",
+                          "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                          "    for (const acl of aclArray) {",
+                          "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                          "    }",
+                          "    console.log('==================================================');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "exec": [
+                          "const aclRelationships = pm.environment.get('aclRelationships');",
+                          "let shouldTest = false;",
+                          "",
+                          "try {",
+                          "    if (aclRelationships) {",
+                          "        const aclArray = JSON.parse(aclRelationships);",
+                          "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                          "    }",
+                          "} catch (e) {",
+                          "    // Skip test",
+                          "}",
+                          "",
+                          "if (shouldTest) {",
+                          "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                          "        pm.expect(pm.response.code).to.equal(204);",
+                          "    });",
+                          "    console.log('\u2705 ACL relationships PUT completed');",
+                          "} else {",
+                          "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                          "}"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{metadataToken}}",
+                        "type": "text"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{{aclRelationships}}"
+                    },
+                    "url": {
+                      "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                      "host": [
+                        "{{metadataBaseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "documents",
+                        "{{documentId}}",
+                        "acl-relationships"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+            },
+            {
+              "name": "02c - Upload Initial Content",
               "item": [
                 {
                   "name": "Extract Content Metadata from NMD",
@@ -4424,7 +5180,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -4509,7 +5268,112 @@
           "description": "Create document in DELETED state state"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -5006,7 +5870,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('UPDATE');"
+                      "buildAndSavePatchRequest('UPDATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -5094,6 +5961,111 @@
             }
           ],
           "description": "Update document to PURGE state state"
+        },
+        {
+          "name": "04a - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
         },
         {
           "name": "Validation",
@@ -5331,7 +6303,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -5416,7 +6391,112 @@
           "description": "Create document in Original Name state"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -5913,7 +6993,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('UPDATE');"
+                      "buildAndSavePatchRequest('UPDATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -6001,6 +7084,111 @@
             }
           ],
           "description": "Update document to Renamed state"
+        },
+        {
+          "name": "04a - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
         },
         {
           "name": "Validation",
@@ -6238,7 +7426,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -6323,7 +7514,112 @@
           "description": "Create document in Scenario D: Lock Document"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -6868,7 +8164,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -6953,7 +8252,112 @@
           "description": "Create document in Scenario E: Unlock Document"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -7470,7 +8874,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -7557,7 +8964,112 @@
           ]
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -8154,7 +9666,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -8241,7 +9756,112 @@
           ]
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -8866,7 +10486,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -8951,7 +10574,112 @@
           "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",
@@ -9600,7 +11328,10 @@
                       "}",
                       "eval(libCode);",
                       "// Build patch request",
-                      "buildAndSavePatchRequest('CREATE');"
+                      "buildAndSavePatchRequest('CREATE');",
+                      "",
+                      "// Extract and save ACL relationships",
+                      "extractAndSaveAclRelationships();"
                     ]
                   }
                 }
@@ -9685,7 +11416,112 @@
           "description": "Create document in Scenario A: Upload \u2192 Create (Standard)"
         },
         {
-          "name": "02a - Upload Initial Content",
+          "name": "02b - Sync ACL Relationships",
+          "item": [
+            {
+              "name": "PUT ACL Relationships",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "",
+                      "let shouldPut = false;",
+                      "let aclArray = [];",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        aclArray = JSON.parse(aclRelationships);",
+                      "        shouldPut = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    console.log('\u26a0\ufe0f  aclRelationships is not valid JSON, skipping PUT');",
+                      "}",
+                      "",
+                      "if (shouldPut) {",
+                      "    console.log('');",
+                      "    console.log('\ud83d\udd10 PUT ACL RELATIONSHIPS');",
+                      "    console.log('==================================================');",
+                      "    console.log(`\u2705 Sending ${aclArray.length} ACL relationship(s) to API`);",
+                      "    for (const acl of aclArray) {",
+                      "        console.log(`   \u2022 ${acl.subjectId} (${acl.subjectType}): [${acl.relations.join(', ')}]`);",
+                      "    }",
+                      "    console.log('==================================================');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  Skipping PUT ACL - no relationships to set');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const aclRelationships = pm.environment.get('aclRelationships');",
+                      "let shouldTest = false;",
+                      "",
+                      "try {",
+                      "    if (aclRelationships) {",
+                      "        const aclArray = JSON.parse(aclRelationships);",
+                      "        shouldTest = Array.isArray(aclArray) && aclArray.length > 0;",
+                      "    }",
+                      "} catch (e) {",
+                      "    // Skip test",
+                      "}",
+                      "",
+                      "if (shouldTest) {",
+                      "    pm.test('[ACL PUT] Relationships set successfully (204 No Content)', function () {",
+                      "        pm.expect(pm.response.code).to.equal(204);",
+                      "    });",
+                      "    console.log('\u2705 ACL relationships PUT completed');",
+                      "} else {",
+                      "    console.log('\u23ed\ufe0f  PUT ACL test skipped (no ACLs)');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{metadataToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{{aclRelationships}}"
+                },
+                "url": {
+                  "raw": "{{metadataBaseUrl}}/v3/documents/{{documentId}}/acl-relationships",
+                  "host": [
+                    "{{metadataBaseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "documents",
+                    "{{documentId}}",
+                    "acl-relationships"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Sync ACL relationships via separate PUT/DELETE endpoints (matches sync-wrk behavior)"
+        },
+        {
+          "name": "02c - Upload Initial Content",
           "item": [
             {
               "name": "Extract Content Metadata from NMD",

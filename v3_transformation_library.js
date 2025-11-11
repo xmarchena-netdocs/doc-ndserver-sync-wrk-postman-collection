@@ -932,6 +932,246 @@ function buildAndSavePatchRequest(operationType = 'CREATE') {
 }
 
 // ========================================================================
+// ACL RELATIONSHIP EXTRACTION FUNCTIONS (v3 API)
+// ========================================================================
+// These functions extract ACL relationships from NMD messages for
+// separate PUT/DELETE calls to /v3/documents/{id}/acl-relationships
+// Matches sync-wrk implementation: AclMapper.cs and NmdSyncMessageExtensions.cs
+
+/**
+ * Get subject type from GUID prefix
+ * Matches sync-wrk: AclMapper.GetSubjectType()
+ *
+ * @param {string} guid - Subject GUID (e.g., "DUCOT-user123", "UG-group456", "NG-cabinet789")
+ * @returns {string} Subject type: "user", "group", or "cabinet"
+ */
+function getAclSubjectType(guid) {
+    if (!guid) {
+        return 'user';
+    }
+
+    if (guid.startsWith('UG-')) {
+        return 'group';
+    }
+
+    if (guid.startsWith('NG-')) {
+        return 'cabinet';
+    }
+
+    return 'user';
+}
+
+/**
+ * Convert NMD rights string to v3 ACL relations array
+ * Matches sync-wrk: AclMapper.ConvertRightsToRelations()
+ *
+ * @param {string} rights - NMD rights string (e.g., "VESD", "V", "Z")
+ * @returns {string[]} Array of relation strings
+ */
+function convertRightsToRelations(rights) {
+    if (!rights) {
+        return [];
+    }
+
+    const relationsSet = new Set();
+
+    for (const right of rights) {
+        switch (right) {
+            case 'V':
+                relationsSet.add('viewer');
+                break;
+            case 'E':
+                relationsSet.add('editor');
+                break;
+            case 'S':
+                relationsSet.add('sharer');
+                break;
+            case 'A':
+            case 'D':  // Delete = Administrator
+                relationsSet.add('administrator');
+                break;
+            case 'N':
+                relationsSet.add('denied');
+                break;
+            case 'Z':
+                relationsSet.add('default');
+                break;
+            default:
+                console.warn(`   ⚠️  Unknown right: ${right}`);
+        }
+    }
+
+    return Array.from(relationsSet);
+}
+
+/**
+ * Extract document-level ACL relationships from NMD envProps.acl
+ * Matches sync-wrk: AclMapper.ExtractDocumentAcls()
+ *
+ * @param {object} nmdMessage - NMD message object
+ * @returns {object[]} Array of ACL relationship objects
+ */
+function extractDocumentAcls(nmdMessage) {
+    console.log('   📋 Extracting document-level ACLs...');
+
+    const acl = nmdMessage && nmdMessage.envProps && nmdMessage.envProps.acl;
+
+    if (!acl || acl.length === 0) {
+        console.log('   ℹ️  No document-level ACLs found');
+        return [];
+    }
+
+    const relationships = [];
+
+    for (const entry of acl) {
+        // Validate required fields
+        if (!entry.guid) {
+            console.warn('   ⚠️  Invalid ACL entry: missing guid');
+            continue;
+        }
+
+        if (!entry.rights) {
+            console.warn('   ⚠️  Invalid ACL entry: missing rights');
+            continue;
+        }
+
+        // Determine subject type from GUID
+        const subjectType = getAclSubjectType(entry.guid);
+
+        // Convert rights string to relations array
+        const relations = convertRightsToRelations(entry.rights);
+
+        if (relations.length === 0) {
+            console.warn(`   ⚠️  No valid relations for ${entry.guid}`);
+            continue;
+        }
+
+        relationships.push({
+            subjectType: subjectType,
+            subjectId: entry.guid,
+            relations: relations
+        });
+
+        console.log(`   ✅ Document ACL: ${entry.guid} (${subjectType}) → [${relations.join(', ')}]`);
+    }
+
+    console.log(`   📊 Total document ACLs: ${relationships.length}`);
+    return relationships;
+}
+
+/**
+ * Extract official version ACL relationships
+ * Matches sync-wrk: AclMapper.ExtractOfficialVersionOnlyAcls()
+ *
+ * @param {object} nmdMessage - NMD message object
+ * @param {string} officialVersionId - Official version ID
+ * @returns {object[]} Array of ACL relationship objects with official_access_only marker
+ */
+function extractOfficialVersionOnlyAcls(nmdMessage, officialVersionId) {
+    console.log('   📋 Extracting official version ACLs...');
+
+    const doc = nmdMessage && nmdMessage.documents && nmdMessage.documents['1'];
+    if (!doc || !doc.versions) {
+        console.log('   ℹ️  No versions found');
+        return [];
+    }
+
+    const officialVersion = doc.versions[officialVersionId];
+    if (!officialVersion) {
+        console.log(`   ℹ️  Official version ${officialVersionId} not found`);
+        return [];
+    }
+
+    // Check if verProps exists (fix for previous null pointer error)
+    if (!officialVersion.verProps) {
+        console.log('   ℹ️  No verProps found in official version');
+        return [];
+    }
+
+    const access = officialVersion.verProps.access;
+    if (!access) {
+        console.log('   ℹ️  No version access string found');
+        return [];
+    }
+
+    const relationships = [];
+    const lines = access.split('\n').filter(line => line.trim().length > 0);
+
+    for (const line of lines) {
+        // Parse "U<GUID>|<RIGHTS>|<DISPLAY_NAME>"
+        const parts = line.split('|');
+        if (parts.length < 2) continue;
+
+        const guidWithPrefix = parts[0].trim();  // "UDUCOT-1TB7OLW0"
+        if (guidWithPrefix.length <= 1) continue;
+
+        const guid = guidWithPrefix.substring(1); // Remove 'U' prefix
+        const rights = parts[1].trim();
+
+        const subjectType = getAclSubjectType(guid);
+        const relations = convertRightsToRelations(rights);
+
+        if (relations.length === 0) continue;
+
+        // Add official_access_only marker
+        relations.push('official_access_only');
+
+        relationships.push({
+            subjectType: subjectType,
+            subjectId: guid,
+            relations: relations
+        });
+
+        console.log(`   ✅ Version ACL: ${guid} (${subjectType}) → [${relations.join(', ')}]`);
+    }
+
+    console.log(`   📊 Total version ACLs: ${relationships.length}`);
+    return relationships;
+}
+
+/**
+ * Main orchestrator: extract all ACL relationships and save to environment
+ * Matches sync-wrk: NmdSyncMessageExtensions.ToAclRelationships()
+ */
+function extractAndSaveAclRelationships() {
+    console.log('');
+    console.log('🔐 ACL RELATIONSHIP EXTRACTION');
+    console.log('==================================================');
+
+    const nmdMessage = JSON.parse(pm.environment.get('nmdMessage'));
+
+    // Get official version ID
+    const doc = nmdMessage && nmdMessage.documents && nmdMessage.documents['1'];
+    const officialVersionId = (doc && doc.docProps && doc.docProps.officialVersionId) || '1';
+
+    console.log(`   📄 Document ID: ${(doc && doc.docProps && doc.docProps.id) || 'unknown'}`);
+    console.log(`   📋 Official Version ID: ${officialVersionId}`);
+
+    // Extract document-level ACLs
+    const documentAcls = extractDocumentAcls(nmdMessage);
+
+    // Extract official version ACLs
+    const versionAcls = extractOfficialVersionOnlyAcls(nmdMessage, officialVersionId);
+
+    // Combine all ACLs
+    const allAcls = [...documentAcls, ...versionAcls];
+
+    // Save to environment
+    if (allAcls.length > 0) {
+        pm.environment.set('aclRelationships', JSON.stringify(allAcls));
+        console.log('');
+        console.log(`✅ ACL extraction complete: ${allAcls.length} relationships`);
+        console.log(`   📤 Saved to environment variable: aclRelationships`);
+    } else {
+        pm.environment.unset('aclRelationships');
+        console.log('');
+        console.log('ℹ️  No ACL relationships found - will DELETE existing ACLs');
+    }
+
+    console.log('==================================================');
+}
+
+// ========================================================================
 // EXPORT FUNCTIONS TO PM OBJECT
 // ========================================================================
 // Attach all functions to pm object so they're accessible in Newman
@@ -983,11 +1223,19 @@ pm.nmdTransform = {
 
     // Main transformation
     buildPatchRequest,
-    buildAndSavePatchRequest
+    buildAndSavePatchRequest,
+
+    // ACL Relationship extraction (v3 API)
+    getAclSubjectType,
+    convertRightsToRelations,
+    extractDocumentAcls,
+    extractOfficialVersionOnlyAcls,
+    extractAndSaveAclRelationships
 };
 
-// Also expose main helper function at top level for convenience
+// Also expose main helper functions at top level for convenience
 pm.buildAndSavePatchRequest = buildAndSavePatchRequest;
+pm.extractAndSaveAclRelationships = extractAndSaveAclRelationships;
 
 // ========================================================================
 // USAGE NOTE
