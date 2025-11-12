@@ -48,7 +48,8 @@
         "indexType-FullText": "COUCHBASE",
         "indexLocation-FullText": "/Ducot3/1/1/2/9/~251023154100603-1.fti",
         "indexType-Entities": "COUCHBASE",
-        "indexLocation-Entities": "/Ducot3/1/1/2/9/~251023154100603-1.ent"
+        "indexLocation-Entities": "/Ducot3/1/1/2/9/~251023154100603-1.ent",
+        "cp|1001|1": "vip"
       },
       "versions": {
         "1": {

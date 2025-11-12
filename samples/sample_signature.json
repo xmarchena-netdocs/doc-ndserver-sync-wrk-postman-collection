@@ -56,7 +56,8 @@
           "signer": "DUCOT-8R5PP346 (John Doe)",
           "signerGuid": "DUCOT-8R5PP346",
           "sigData": "NAzoIXkU3Vuv1AG589tzLfCIrvCTIBTmGvTHWDcKg+g="
-        }
+        },
+        "cp|1001|1": "vip"
       },
       "versions": {
         "1": {

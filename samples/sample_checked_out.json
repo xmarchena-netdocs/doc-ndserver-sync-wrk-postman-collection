@@ -52,7 +52,8 @@
         "actionBy": "John Doe",
         "actionByGuid": "DUCOT-8R5PP346",
         "actionDate": "/Date(1761248460000)/",
-        "actionComment": "Checked out for editing"
+        "actionComment": "Checked out for editing",
+        "cp|1001|1": "vip"
       },
       "versions": {
         "1": {

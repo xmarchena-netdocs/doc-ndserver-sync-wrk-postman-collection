@@ -53,8 +53,6 @@
         "indexLocation-FullText": "/Ducot3/1/1/2/9/~251023154100603-1.fti",
         "indexType-Entities": "COUCHBASE",
         "indexLocation-Entities": "/Ducot3/1/1/2/9/~251023154100603-1.ent",
-        "cp|CA-WJUDJA7A|1": "Complex Value 1",
-        "cp|CA-WJUDJA7A|2": "Complex Value 2",
         "signature|1|abc12345-1234-5678-9012-123456789abc": {
           "verNo": 1,
           "timeStamp": "/Date(1761275325553)/",
@@ -62,7 +60,8 @@
           "signer": "DUCOT-COMPLEX (Complex User)",
           "signerGuid": "DUCOT-COMPLEX",
           "sigData": "ComplexSignatureData123=="
-        }
+        },
+        "cp|1001|1": "vip"
       },
       "versions": {
         "1": {

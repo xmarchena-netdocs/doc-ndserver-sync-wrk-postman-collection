@@ -906,10 +906,14 @@ function buildAndSavePatchRequest(operationType = 'CREATE') {
 
     console.log(`✅ ${operationType} patch request built successfully`);
     console.log(`   Document: ${patchRequest.Name}`);
+    console.log(`   Cabinet ID: ${v3PatchRequest.cabinetId}`);
     console.log(`   State: ${patchRequest.State}`);
     console.log(`   Versions: ${patchRequest.Versions.length}`);
     console.log(`   ACL Entries: ${patchRequest.Acl.length}`);
     console.log(`   Custom Attributes: ${patchRequest.CustomAttributes.length}`);
+    if (patchRequest.CustomAttributes.length > 0) {
+        console.log(`   Custom Attribute Keys: ${patchRequest.CustomAttributes.map(attr => attr.Key).join(', ')}`);
+    }
     console.log(`   Linked Documents: ${patchRequest.LinkedDocuments.length}`);
     console.log(`   Parent Folders: ${patchRequest.ParentFolders.length}`);
     console.log(`   Folder Tree: ${patchRequest.FolderTree.length}`);

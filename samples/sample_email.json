@@ -56,7 +56,8 @@
           ],
           "subject": "Sample Email Subject",
           "sentDate": "/Date(1761248460000)/"
-        }
+        },
+        "cp|1001|1": "vip"
       },
       "versions": {
         "1": {
